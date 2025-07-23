@@ -108,26 +108,7 @@ La aplicación estará disponible en `http://localhost:5173`
 
 ## 🌐 Despliegue
 
-### Opción 1: Netlify (Recomendado)
-
-#### Despliegue Automático
-
-1. Conecta tu repositorio a Netlify
-2. Netlify detectará automáticamente la configuración desde `netlify.toml`
-3. El sitio se desplegará automáticamente en cada push
-
-#### Despliegue Manual
-
-```bash
-# Construir el proyecto
-npm run build:client
-
-# Desplegar a Netlify CLI
-npm install -g netlify-cli
-netlify deploy --prod --dir=dist/spa
-```
-
-### Opción 2: Vercel
+### Opción 1: Vercel
 
 1. **Instalar Vercel CLI**
 
@@ -142,7 +123,7 @@ npm run build:client
 vercel --prod
 ```
 
-### Opción 3: Servidor Propio
+### Opción 2: Servidor Propio
 
 1. **Construir el proyecto**
 
@@ -156,7 +137,7 @@ npm run build
 npm start
 ```
 
-### Opción 4: Docker
+### Opción 3: Docker
 
 1. **Crear Dockerfile**
 
@@ -198,7 +179,7 @@ testcentral/
 │   ├── routes/            # Rutas de API
 │   └── index.ts           # Servidor principal
 ├── shared/                # Código compartido
-├── netlify/               # Funciones de Netlify
+
 ├── public/                # Archivos estáticos
 └── dist/                  # Archivos construidos
 ```

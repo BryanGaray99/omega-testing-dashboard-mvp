@@ -5,7 +5,6 @@ Esta guía proporciona instrucciones detalladas para desplegar TestCentral en di
 ## 📋 Tabla de Contenidos
 
 - [Preparación](#preparación)
-- [Netlify (Recomendado)](#netlify-recomendado)
 - [Vercel](#vercel)
 - [Railway](#railway)
 - [Servidor VPS/Cloud](#servidor-vpscloud)
@@ -43,56 +42,7 @@ npm run build:client
 ls -la dist/spa
 ```
 
-## 🌟 Netlify (Recomendado)
 
-Netlify es la opción recomendada por su facilidad de configuración y el archivo `netlify.toml` ya incluido.
-
-### Opción A: Despliegue desde Git (Automático)
-
-1. **Crear cuenta en [Netlify](https://netlify.com)**
-
-2. **Conectar repositorio**
-
-   - Clic en "New site from Git"
-   - Conectar tu cuenta de GitHub/GitLab/Bitbucket
-   - Seleccionar el repositorio de TestCentral
-
-3. **Configuración automática**
-
-   Netlify detectará automáticamente:
-
-   - Build command: `npm run build:client`
-   - Publish directory: `dist/spa`
-   - Functions directory: `netlify/functions`
-
-4. **Desplegar**
-   - Clic en "Deploy site"
-   - El sitio se desplegará automáticamente
-
-### Opción B: Despliegue Manual con CLI
-
-```bash
-# Instalar Netlify CLI
-npm install -g netlify-cli
-
-# Login
-netlify login
-
-# Construir el proyecto
-npm run build:client
-
-# Desplegar
-netlify deploy --prod --dir=dist/spa
-
-# Para deploys de prueba (sin --prod)
-netlify deploy --dir=dist/spa
-```
-
-### Configuración de Dominio Personalizado
-
-1. En el dashboard de Netlify, ir a "Domain settings"
-2. Agregar tu dominio personalizado
-3. Configurar los DNS según las instrucciones de Netlify
 
 ## ⚡ Vercel
 
@@ -488,7 +438,7 @@ curl -I https://tu-sitio.com/assets/index.css
 
 ### Herramientas de Monitoreo
 
-- **Netlify Analytics** (si usas Netlify)
+
 - **Vercel Analytics** (si usas Vercel)
 - **Google Analytics**
 - **Sentry** para errores

@@ -92,7 +92,6 @@ Dockerfile
 docker-compose*.yml
 
 # Deployment files
-netlify.toml
 vercel.json
 
 # Database files
