@@ -1,308 +1,331 @@
-# TestCentral - Testing Automation Platform
+# 🎯 Omega Testing Dashboard MVP - Interfaz de Usuario Local
 
-> **Tesis de Grado** - Plataforma de automatización de pruebas para Backend APIs
+## Repositorio Backend - Trabajo de titulación
 
-## 📋 Descripción
+## Autor: Bryan Enrique Garay Benavidez
 
-TestCentral es una plataforma web moderna diseñada para la automatización de pruebas de APIs Backend. Desarrollada como proyecto de tesis, proporciona una interfaz intuitiva para gestionar proyectos, endpoints, casos de prueba y monitoreo de ejecuciones.
+## 📋 Descripción del Proyecto
 
-## ✨ Características Actuales
+Este es el **dashboard de usuario local** del sistema completo de testing automatizado. Su propósito es proporcionar una interfaz web moderna e intuitiva para gestionar proyectos de testing Playwright + BDD generados por el motor de generación.
 
-### 🚀 Funcionalidades Implementadas
+## 🏗️ Arquitectura del MVP
 
-- **Dashboard Interactivo**: Vista general del estado de las pruebas
-- **Gestión de Proyectos**: Organización y administración de proyectos de testing
-- **Administración de Endpoints**: Configuración y gestión de endpoints de API
-- **Casos de Prueba**: Creación y administración de test cases
-- **Centro de Ejecución**: Monitoreo de ejecuciones de pruebas en tiempo real
-- **Reportes y Analytics**: Visualización de métricas y tendencias
-- **Sistema de Logs**: Monitoreo detallado del sistema
-- **Configuraciones**: Panel de configuración completo
-- **Autenticación Opcional**: Sistema de login para funciones avanzadas
-- **Tema Oscuro/Claro**: Soporte completo para ambos temas
-- **Sidebar Colapsable**: Navegación optimizada para desktop y móvil
+Este dashboard es parte del **Local User Environment** en la arquitectura completa del sistema:
 
-### 🚧 Implementaciones Futuras (Tesis)
+![Arquitectura del MVP](arquitectura.png)
 
-- **Asistente de IA**: Generación automática de casos de prueba
-- **Colaboración en Equipo**: Compartir proyectos entre miembros del equipo
-- **Reportes Avanzados**: Analytics detallados con IA
-- **Soporte Prioritario**: Sistema de help desk integrado
+### Componentes del Dashboard
+
+- **Dashboard Principal**
+  - *Tecnologías*: React 18 + TypeScript + Vite
+  - *Descripción*: Vista general del estado de proyectos, métricas y ejecuciones recientes
+
+- **Gestión de Proyectos**
+  - *Tecnologías*: React Router + TailwindCSS + Radix UI
+  - *Descripción*: Interfaz para crear, editar y administrar proyectos de testing generados
+
+- **Centro de Ejecución**
+  - *Tecnologías*: WebSockets + Framer Motion
+  - *Descripción*: Monitoreo en tiempo real de ejecuciones de pruebas con logs y métricas
+
+- **Configuraciones Locales**
+  - *Tecnologías*: Context API + LocalStorage
+  - *Descripción*: Gestión de preferencias, temas y configuraciones específicas del usuario
+
+## 🎯 Propósito de este MVP
+
+Este dashboard es la **interfaz de usuario local** del sistema completo. Se enfoca en proporcionar una experiencia web moderna para:
+
+- **Gestionar proyectos** de testing generados por el motor
+- **Monitorear ejecuciones** en tiempo real
+- **Configurar preferencias** locales del usuario
+- **Visualizar métricas** y reportes de testing
+
+**¿Por qué interfaz web local?**
+- Proporciona una experiencia moderna sin necesidad de aplicaciones nativas
+- Se ejecuta en el navegador del usuario manteniendo privacidad total
+- Se comunica con el motor de generación local vía API REST
+- Permite acceso desde cualquier dispositivo en la red local
 
 ## 🛠️ Stack Tecnológico
 
-### Frontend
-
+### Frontend Principal
 - **React 18** - Biblioteca de interfaz de usuario
-- **TypeScript** - Tipado estático
-- **Vite** - Build tool y desarrollo
-- **React Router 6** - Enrutamiento SPA
-- **TailwindCSS** - Framework de CSS utility-first
-- **Radix UI** - Componentes accesibles sin estilo
-- **Lucide React** - Iconografía moderna
-- **Framer Motion** - Animaciones fluidas
+- **TypeScript 5** - Tipado estático para mayor robustez
+- **Vite** - Build tool rápido para desarrollo y producción
+- **React Router 6** - Enrutamiento SPA con lazy loading
 
-### Backend
+### UI/UX
+- **TailwindCSS** - Framework CSS utility-first para diseño rápido
+- **Radix UI** - Componentes accesibles sin estilos predefinidos
+- **Lucide React** - Iconografía moderna y consistente
+- **Framer Motion** - Animaciones fluidas y transiciones
 
-- **Express.js** - Servidor web minimalista
-- **Zod** - Validación de esquemas
-- **TypeScript** - Tipado en backend
+### Estado y Datos
+- **Context API** - Gestión de estado global
+- **React Query** - Gestión de estado del servidor y caché
+- **Zod** - Validación de esquemas en tiempo de ejecución
 
-### Desarrollo y Build
+### Desarrollo
+- **SWC** - Compilador rápido para TypeScript/JavaScript
+- **Vitest** - Framework de testing moderno
+- **Prettier** - Formateo automático de código
+- **ESLint** - Linting y análisis estático
 
-- **SWC** - Compilador rápido para JavaScript/TypeScript
-- **Vitest** - Framework de testing
-- **Prettier** - Formateo de c��digo
+## 📋 Requisitos
 
-## 📦 Instalación y Configuración
+- **Node.js** (versión 18 o superior)
+- **npm** (incluido con Node.js)
+- **Motor de Generación** ejecutándose en `http://localhost:3000`
 
-### Prerrequisitos
+## 🚀 Instalación y Ejecución
 
-- **Node.js** >= 18.0.0
-- **npm** >= 8.0.0
+### Método 1: Instalación Directa (⭐ RECOMENDADO)
 
-### Instalación
-
-1. **Clonar el repositorio**
-
+#### 1. Clonar el Repositorio
 ```bash
-git clone <repository-url>
-cd testcentral
+git clone https://github.com/BryanGaray99/omega-testing-dashboard-mvp.git
+cd omega-testing-dashboard-mvp
 ```
 
-2. **Instalar dependencias**
+#### 2. Configurar Variables de Entorno
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
 
+# Editar las variables según tu configuración
+# Especialmente importante:
+# - VITE_API_URL: URL del motor de generación (default: http://localhost:3000)
+# - VITE_APP_PORT: Puerto del dashboard (default: 5173)
+```
+
+#### 3. Instalar Dependencias
 ```bash
 npm install
 ```
 
-3. **Configurar variables de entorno (opcional)**
-
-```bash
-cp .env.example .env
-# Editar .env con tus configuraciones
-```
-
-## 🚀 Desarrollo
-
-### Ejecutar en modo desarrollo
-
+#### 4. Ejecutar el Dashboard
 ```bash
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:5173`
+#### 5. Verificar que Funciona
+- **Dashboard**: http://localhost:5173
+- **Motor de Generación**: http://localhost:3000 (debe estar ejecutándose)
 
-### Scripts disponibles
+### ⚠️ Configuración del Archivo .env
 
-| Comando                | Descripción                           |
-| ---------------------- | ------------------------------------- |
-| `npm run dev`          | Inicia el servidor de desarrollo      |
-| `npm run build`        | Construye el proyecto para producción |
-| `npm run build:client` | Construye solo el cliente             |
-| `npm run build:server` | Construye solo el servidor            |
-| `npm run start`        | Inicia el servidor de producción      |
-| `npm run test`         | Ejecuta las pruebas                   |
-| `npm run typecheck`    | Verifica tipos de TypeScript          |
-| `npm run format.fix`   | Formatea el código con Prettier       |
+Asegúrate de que tu archivo `.env` contenga las siguientes variables:
 
-## 🌐 Despliegue
+```env
+# URL del motor de generación (backend)
+VITE_API_URL=http://localhost:3000
 
-### Opción 1: Vercel
+# Puerto del dashboard
+VITE_APP_PORT=5173
 
-1. **Instalar Vercel CLI**
+# Modo de desarrollo
+VITE_DEV_MODE=true
+
+# Configuración de autenticación (futuro)
+VITE_AUTH_ENABLED=false
+
+# Configuración de temas
+VITE_DEFAULT_THEME=system
+```
+
+### Método 2: Con Docker (Solo para desarrollo/pruebas)
 
 ```bash
-npm install -g vercel
+docker build -t omega-dashboard .
+docker run -p 5173:5173 omega-dashboard
 ```
 
-2. **Desplegar**
+## 🎯 ¿Qué hace este Dashboard?
+
+1. **Gestiona proyectos** de testing generados por el motor
+2. **Monitorea ejecuciones** en tiempo real con logs y métricas
+3. **Configura preferencias** locales del usuario
+4. **Visualiza reportes** y analytics de testing
+5. **Proporciona interfaz** moderna para todas las operaciones
+6. **Mantiene privacidad** total ejecutándose localmente
+
+## 📊 Status Actual del MVP
+
+### ✅ **Completado**
+- ✅ Interfaz web moderna con React 18 + TypeScript
+- ✅ Sistema de navegación con React Router
+- ✅ Componentes UI accesibles con Radix UI
+- ✅ Temas claro/oscuro con persistencia
+- ✅ Sidebar colapsable responsive
+- ✅ Dashboard principal con métricas
+- ✅ Páginas de configuración completas
+- ✅ Sistema de autenticación básico
+- ✅ Integración con motor de generación
+- ✅ Build optimizado con Vite
+
+### 🔄 **En Desarrollo**
+- 🔄 Gestión completa de proyectos
+- 🔄 Monitoreo en tiempo real de ejecuciones
+- 🔄 Reportes y analytics avanzados
+- 🔄 Integración con WebSockets
+
+### 📋 **Próximos Pasos**
+- 📋 Sistema de notificaciones
+- 📋 Exportación de reportes
+- 📋 Integración con IA (fase posterior)
+- 📋 Colaboración en equipo
+
+## 📚 Funcionalidades Disponibles
+
+### Dashboard Principal
+- **Vista General**: Métricas de proyectos y ejecuciones
+- **Proyectos Recientes**: Acceso rápido a proyectos activos
+- **Ejecuciones Activas**: Monitoreo en tiempo real
+- **Métricas Clave**: Estadísticas de testing
+
+### Gestión de Proyectos
+- **Crear Proyecto**: Interfaz para nuevos proyectos
+- **Listar Proyectos**: Vista de todos los proyectos
+- **Editar Proyecto**: Modificar configuraciones
+- **Eliminar Proyecto**: Gestión del ciclo de vida
+
+### Centro de Ejecución
+- **Ejecutar Tests**: Lanzar pruebas desde la interfaz
+- **Monitoreo en Tiempo Real**: Logs y progreso
+- **Resultados**: Visualización de reportes
+- **Historial**: Ejecuciones anteriores
+
+### Configuraciones
+- **Perfil de Usuario**: Información personal
+- **Seguridad**: Configuración de autenticación
+- **Apariencia**: Temas y personalización
+- **Notificaciones**: Preferencias de alertas
+- **Exportación**: Configuración de reportes
+
+## 🧪 Probar el Dashboard
+
+### Acceso Inicial
+1. **Abrir navegador**: http://localhost:5173
+2. **Modo invitado**: Funciones básicas sin login
+3. **Login opcional**: Para funciones avanzadas
+
+### Crear un Proyecto
+1. **Navegar a Projects**
+2. **Hacer clic en "Nuevo Proyecto"**
+3. **Completar formulario**:
+   - Nombre: `mi-proyecto-test`
+   - URL Base: `http://localhost:3004`
+   - Descripción: `Proyecto de prueba`
+
+### Ejecutar Tests
+1. **Seleccionar proyecto**
+2. **Ir a Execution Center**
+3. **Hacer clic en "Ejecutar Tests"**
+4. **Monitorear progreso** en tiempo real
+
+## 🛠️ Scripts Disponibles
 
 ```bash
-npm run build:client
-vercel --prod
+npm run dev          # Desarrollo (hot reload)
+npm run build        # Construir para producción
+npm run build:client # Construir solo cliente
+npm run build:server # Construir solo servidor
+npm run start        # Ejecutar en producción
+npm run test         # Ejecutar tests
+npm run typecheck    # Verificar tipos TypeScript
+npm run format.fix   # Formatear código
 ```
 
-### Opción 2: Servidor Propio
+## 🛠️ Solución de Problemas
 
-1. **Construir el proyecto**
-
+### Puerto ocupado
+El dashboard automáticamente prueba puertos 5173, 5174 y 5175. Si todos están ocupados:
 ```bash
-npm run build
+VITE_APP_PORT=5176 npm run dev
 ```
 
-2. **Ejecutar en producción**
-
+### Problemas de dependencias
 ```bash
-npm start
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-### Opción 3: Docker
-
-1. **Crear Dockerfile**
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-2. **Construir y ejecutar**
-
+### Motor de generación no disponible
+Asegúrate de que el motor de generación esté ejecutándose:
 ```bash
-docker build -t testcentral .
-docker run -p 3000:3000 testcentral
+# En otra terminal, desde el directorio del backend
+cd ../central-backend-mvp
+npm run start:dev
 ```
 
-## 📁 Estructura del Proyecto
-
-```
-testcentral/
-├── client/                 # Frontend React
-│   ├── components/         # Componentes React
-│   │   ├── ui/            # Componentes UI base (Radix)
-│   │   ├── Layout.tsx     # Layout principal
-│   │   └── ...
-│   ├── contexts/          # Context providers
-│   ├── pages/             # Páginas de la aplicación
-│   │   ├── settings/      # Páginas de configuración
-│   │   └── ...
-│   ├── hooks/             # Custom hooks
-│   ├── lib/               # Utilidades y helpers
-│   └── App.tsx            # Componente raíz
-├── server/                # Backend Express
-│   ├── routes/            # Rutas de API
-│   └── index.ts           # Servidor principal
-├── shared/                # Código compartido
-
-├── public/                # Archivos estáticos
-└── dist/                  # Archivos construidos
+### Configuración de API
+Si el motor de generación está en un puerto diferente:
+```bash
+# En .env
+VITE_API_URL=http://localhost:3001
 ```
 
-## 💻 Uso
+## 📁 Estructura
 
-### Acceso a la Aplicación
+```
+client/
+├── components/         # Componentes React
+│   ├── ui/            # Componentes UI base (Radix)
+│   ├── Layout.tsx     # Layout principal
+│   └── ...
+├── contexts/          # Context providers
+├── pages/             # Páginas de la aplicación
+│   ├── settings/      # Páginas de configuración
+│   └── ...
+├── hooks/             # Custom hooks
+├── lib/               # Utilidades y helpers
+└── App.tsx            # Componente raíz
+server/                # Backend Express (servidor estático)
+shared/                # Código compartido
+public/                # Archivos estáticos
+```
 
-1. **Modo Invitado**: Todas las funciones básicas están disponibles sin login
-2. **Modo Autenticado**: Login opcional para funciones futuras
+## 📝 Notas Importantes
 
-### Cuentas de Demo
+- **Ejecución Local**: Este dashboard está diseñado para ejecutarse localmente
+- **Dependencia del Motor**: Requiere que el motor de generación esté ejecutándose
+- **Privacidad Total**: Todos los datos permanecen en la máquina local
+- **Configuración**: Funciona sin archivo `.env` usando valores por defecto
+- **Temas**: Soporte completo para tema claro/oscuro con persistencia
+- **Responsive**: Optimizado para desktop y móvil
 
-Para probar el sistema de autenticación:
+## 🔮 Arquitectura Futura
 
-- **Email**: `test@example.com`
-- **Password**: Cualquier contraseña
+Este dashboard es parte del **Local User Environment** en el sistema completo:
 
-### Navegación
+1. **Motor de Generación** (Backend MVP) - Genera proyectos
+2. **Dashboard Local** (Este MVP) - Interfaz de usuario
+3. **Backend con IA** (fase posterior) - Servicios en la nube
+4. **Public Frontend** (fase posterior) - Landing page pública
+5. **Admin Dashboard** (fase posterior) - Panel de administración
 
-- **Dashboard**: Vista general y métricas
-- **Projects**: Gestión de proyectos de testing
-- **Endpoints**: Configuración de APIs a probar
-- **Test Cases**: Creación de casos de prueba
-- **Execution**: Monitoreo de ejecuciones
-- **Reports**: Analytics y reportes
-- **Logs**: Monitoreo del sistema
-- **AI Assistant**: 🚧 Función futura
-- **Settings**: Configuración de la plataforma
-
-## 🔧 Configuración
-
-### Temas
-
-- Cambio automático según preferencias del sistema
-- Toggle manual en la barra superior
-- Persistencia en localStorage
-
-### Sidebar
-
-- Colapsable con toggle
-- Responsive para móvil y desktop
-- Estado persistente
-
-### Configuraciones Disponibles
-
-- **Profile**: Información del usuario
-- **Security**: Configuración de seguridad
-- **GitHub**: Integración con repositorios
-- **OpenAI**: Configuración de IA (futuro)
-- **Tokens**: Gestión de API tokens
-- **Notifications**: Preferencias de notificaciones
-- **Appearance**: Personalización visual
-- **Export**: Exportación de datos
-- **Danger Zone**: Operaciones críticas
-
-## 🚧 Roadmap (Tesis)
+## 🚧 Roadmap
 
 ### Fase 1: Fundamentos ✅
-
 - [x] Interfaz de usuario base
 - [x] Sistema de navegación
-- [x] Autenticación básica
-- [x] Configuraciones
+- [x] Temas y configuración
+- [x] Integración con motor
 
 ### Fase 2: Core Features (En Desarrollo)
-
-- [ ] API de backend funcional
-- [ ] Gestión real de proyectos
-- [ ] Ejecución de pruebas
-- [ ] Base de datos
+- [ ] Gestión completa de proyectos
+- [ ] Monitoreo en tiempo real
+- [ ] Reportes y analytics
+- [ ] Sistema de notificaciones
 
 ### Fase 3: Funciones Avanzadas (Futuro)
-
 - [ ] Integración con IA
-- [ ] Análisis avanzado
 - [ ] Colaboración en equipo
+- [ ] Exportación avanzada
 - [ ] Integraciones externas
 
-## 🧪 Testing
-
-```bash
-# Ejecutar pruebas
-npm run test
-
-# Ejecutar con watch mode
-npm run test -- --watch
-
-# Verificar cobertura
-npm run test -- --coverage
-```
-
-## 🤝 Contribución
-
-Como este es un proyecto de tesis, las contribuciones están limitadas. Sin embargo, se agradecen:
-
-- Reportes de bugs
-- Sugerencias de mejoras
-- Feedback sobre UX/UI
-
-## 📄 Licencia
-
-Este proyecto es parte de una tesis de grado y está sujeto a las regulaciones académicas correspondientes.
-
-## 👨‍💻 Autor
-
-**Bryan Enrique Garay Benavidez**  
-Proyecto de Tesis - Testing Automation Platform
-
 ---
 
-## 📞 Soporte
-
-Para consultas relacionadas con el proyecto de tesis, contactar al autor a través de los canales académicos oficiales.
-
-## 🔗 Enlaces Útiles
-
-- [React Documentation](https://react.dev/)
-- [Vite Documentation](https://vitejs.dev/)
-- [TailwindCSS Documentation](https://tailwindcss.com/)
-- [Radix UI Documentation](https://www.radix-ui.com/)
-- [TypeScript Documentation](https://www.typescriptlang.org/)
-
----
-
-**Nota**: Este README será actualizado conforme avance el desarrollo de la tesis.
+**¡Listo! El dashboard estará ejecutándose en http://localhost:5173**
