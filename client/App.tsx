@@ -11,7 +11,8 @@ import Layout from "./components/Layout";
 import SettingsLayout from "./components/SettingsLayout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
-import ProjectEditor from "./pages/ProjectEditor";
+// Temporarily hidden - ProjectEditor import
+// import ProjectEditor from "./pages/ProjectEditor";
 import Endpoints from "./pages/Endpoints";
 import TestCases from "./pages/TestCases";
 import Execution from "./pages/Execution";
@@ -56,7 +57,9 @@ const App = () => (
                 </Layout>
               }
             />
+            {/* Temporarily hidden - ProjectEditor route
             <Route path="/projects/:id" element={<ProjectEditor />} />
+            */}
             <Route
               path="/endpoints"
               element={
