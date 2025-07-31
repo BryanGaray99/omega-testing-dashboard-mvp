@@ -21,7 +21,7 @@ export default function AppearanceSettings() {
       <div>
         <h2 className="text-2xl font-bold text-foreground">Appearance</h2>
         <p className="text-muted-foreground">
-          Customize the look and feel of your TestCentral interface.
+          Customize the look and feel of your Omega Testing interface.
         </p>
       </div>
 

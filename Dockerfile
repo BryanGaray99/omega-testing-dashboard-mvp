@@ -1,5 +1,5 @@
 # ===================================
-# TestCentral - Production Dockerfile
+# Omega Testing - Production Dockerfile
 # ===================================
 
 # Build stage
@@ -27,7 +27,7 @@ FROM node:18-alpine AS production
 
 # Create app user for security
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S testcentral -u 1001
+RUN adduser -S Omega Testing -u 1001
 
 # Set working directory
 WORKDIR /app
@@ -39,13 +39,13 @@ COPY package*.json ./
 RUN npm ci --only=production --silent
 
 # Copy built application from builder stage
-COPY --from=builder --chown=testcentral:nodejs /app/dist ./dist
+COPY --from=builder --chown=Omega Testing:nodejs /app/dist ./dist
 
 # Create data directory for future use
-RUN mkdir -p /app/data && chown testcentral:nodejs /app/data
+RUN mkdir -p /app/data && chown Omega Testing:nodejs /app/data
 
 # Switch to non-root user
-USER testcentral
+USER Omega Testing
 
 # Expose port
 EXPOSE 3000

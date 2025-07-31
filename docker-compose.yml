@@ -1,16 +1,16 @@
 # ===================================
-# TestCentral - Docker Compose
+# Omega Testing - Docker Compose
 # ===================================
 
 version: "3.8"
 
 services:
   # Main application service
-  testcentral:
+  Omega Testing:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: testcentral-app
+    container_name: Omega Testing-app
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -23,7 +23,7 @@ services:
       # Mount logs directory
       - ./logs:/app/logs
     networks:
-      - testcentral-network
+      - Omega Testing-network
     healthcheck:
       test:
         [
@@ -42,7 +42,7 @@ services:
   # Nginx reverse proxy (optional)
   nginx:
     image: nginx:alpine
-    container_name: testcentral-nginx
+    container_name: Omega Testing-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -51,16 +51,16 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
-      - testcentral
+      - Omega Testing
     networks:
-      - testcentral-network
+      - Omega Testing-network
     profiles:
       - with-nginx
 
   # Redis for caching (future implementation)
   redis:
     image: redis:7-alpine
-    container_name: testcentral-redis
+    container_name: Omega Testing-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -68,31 +68,31 @@ services:
       - redis-data:/data
     command: redis-server --appendonly yes
     networks:
-      - testcentral-network
+      - Omega Testing-network
     profiles:
       - with-redis
 
   # PostgreSQL database (future implementation)
   postgres:
     image: postgres:15-alpine
-    container_name: testcentral-db
+    container_name: Omega Testing-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: testcentral
-      POSTGRES_USER: testcentral
-      POSTGRES_PASSWORD: testcentral_password
+      POSTGRES_DB: Omega Testing
+      POSTGRES_USER: Omega Testing
+      POSTGRES_PASSWORD: Omega Testing_password
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - testcentral-network
+      - Omega Testing-network
     profiles:
       - with-database
 
 networks:
-  testcentral-network:
+  Omega Testing-network:
     driver: bridge
 
 volumes:

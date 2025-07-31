@@ -1,5 +1,5 @@
 # ===================================
-# TestCentral - CI/CD Pipeline
+# Omega Testing - CI/CD Pipeline
 # ===================================
 
 name: CI/CD Pipeline
@@ -177,7 +177,7 @@ jobs:
           tag_name: v${{ github.run_number }}
           release_name: Release v${{ github.run_number }}
           body: |
-            🚀 **TestCentral v${{ github.run_number }}**
+            🚀 **Omega Testing v${{ github.run_number }}**
 
             **Changes in this release:**
             - Auto-generated release from successful deployment
@@ -217,7 +217,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/testcentral
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/Omega Testing
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -249,7 +249,7 @@ jobs:
         if: needs.deploy-production.result == 'success'
         run: |
           echo "✅ Deployment successful!"
-          echo "🚀 TestCentral has been deployed to production"
+          echo "🚀 Omega Testing has been deployed to production"
 
       - name: Notify failure
         if: needs.deploy-production.result == 'failure' || needs.docker.result == 'failure'

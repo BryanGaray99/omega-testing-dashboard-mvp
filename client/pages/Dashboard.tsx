@@ -83,10 +83,10 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome to TestCentral
+            Welcome to Omega Testing
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Your comprehensive testing automation platform dashboard
+            Your comprehensive Omega Testing dashboard
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">

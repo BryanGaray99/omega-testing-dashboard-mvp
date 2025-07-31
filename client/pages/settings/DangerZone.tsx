@@ -257,7 +257,7 @@ export default function DangerZoneSettings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Permanently delete your TestCentral account and all associated
+                Permanently delete your Omega Testing account and all associated
                 data. This action cannot be undone.
               </p>
               <div className="p-3 bg-destructive/10 rounded-lg">

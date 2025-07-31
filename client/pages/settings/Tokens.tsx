@@ -195,7 +195,7 @@ export default function TokensSettings() {
           API Keys & Tokens
         </h2>
         <p className="text-muted-foreground">
-          Manage API tokens for programmatic access to TestCentral.
+          Manage API tokens for programmatic access to Omega Testing.
         </p>
       </div>
 

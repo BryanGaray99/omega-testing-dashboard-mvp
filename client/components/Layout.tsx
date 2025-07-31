@@ -110,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <TestTube className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-foreground">TestCentral</span>
+                <span className="font-bold text-foreground">Omega Testing</span>
               </Link>
               <Button
                 variant="ghost"
@@ -160,7 +160,7 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <TestTube className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-foreground">TestCentral</span>
+                <span className="font-bold text-foreground">Omega Testing</span>
               </Link>
             )}
             {sidebarCollapsed && (
@@ -246,7 +246,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
               <h1 className="text-lg font-semibold text-foreground">
-                Testing Automation Platform
+                Omega Testing
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
