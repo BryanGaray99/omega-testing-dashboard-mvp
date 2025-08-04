@@ -1,0 +1,233 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash,
+  Play,
+  Copy,
+  Bot,
+  CheckCircle,
+  XCircle,
+  Clock,
+  FileText,
+  Calendar,
+} from "lucide-react";
+import { TestCase } from "@/components/types/testCase.types";
+
+interface TestCaseCardProps {
+  testCase: TestCase;
+  projects: any[];
+  onViewDetails: (testCase: TestCase) => void;
+  onEdit: (testCase: TestCase) => void;
+  onRun: (testCase: TestCase) => void;
+  onDuplicate: (testCase: TestCase) => void;
+  onDelete: (testCase: TestCase) => void;
+  openDropdownId: string | null;
+  setOpenDropdownId: (id: string | null) => void;
+}
+
+export default function TestCaseCard({
+  testCase,
+  projects,
+  onViewDetails,
+  onEdit,
+  onRun,
+  onDuplicate,
+  onDelete,
+  openDropdownId,
+  setOpenDropdownId,
+}: TestCaseCardProps) {
+  const getTestTypeColor = (testType: string) => {
+    switch (testType) {
+      case "positive":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "negative":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+    }
+  };
+
+  const getMethodColor = (method: string) => {
+    switch (method) {
+      case "GET":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "POST":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "PUT":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      case "PATCH":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+      case "DELETE":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+    }
+  };
+
+  const getExecutionStatusIcon = (lastRunStatus?: string, lastRun?: string) => {
+    if (!lastRun) {
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+    
+    switch (lastRunStatus) {
+      case "passed":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "failed":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Calendar className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getExecutionStatusColor = (lastRunStatus?: string, lastRun?: string) => {
+    if (!lastRun) {
+      return "secondary";
+    }
+    
+    switch (lastRunStatus) {
+      case "passed":
+        return "default";
+      case "failed":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getExecutionStatusText = (lastRunStatus?: string, lastRun?: string) => {
+    if (!lastRun) {
+      return "PENDING";
+    }
+    
+    switch (lastRunStatus) {
+      case "passed":
+        return "PASSED";
+      case "failed":
+        return "FAILED";
+      default:
+        return "UNKNOWN";
+    }
+  };
+
+  return (
+    <Card className="relative">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-2">
+            {getExecutionStatusIcon(testCase.lastRunStatus, testCase.lastRun)}
+            <Badge variant={getExecutionStatusColor(testCase.lastRunStatus, testCase.lastRun) as any}>
+              {getExecutionStatusText(testCase.lastRunStatus, testCase.lastRun)}
+            </Badge>
+            {testCase.lastRun && (
+              <span className="text-xs text-muted-foreground">
+                {new Date(testCase.lastRun).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          <DropdownMenu
+            open={openDropdownId === testCase.testCaseId}
+            onOpenChange={(open) => setOpenDropdownId(open ? testCase.testCaseId : null)}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => onViewDetails(testCase)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(testCase)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Test Case
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRun(testCase)}>
+                <Play className="mr-2 h-4 w-4" />
+                Run Test
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDuplicate(testCase)}>
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => onDelete(testCase)}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete Test Case
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <CardTitle className="text-lg">{testCase.name}</CardTitle>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <span
+            className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(testCase.testType)}`}
+          >
+            {testCase.testType}
+          </span>
+          <span
+            className={`px-2 py-1 rounded text-xs font-medium ${getMethodColor(testCase.method)}`}
+          >
+            {testCase.method}
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+                   <div className="space-y-2">
+           <div className="flex justify-between text-sm">
+             <span className="text-muted-foreground">Project:</span>
+             <span className="font-medium">
+               {projects.find(p => p.id === testCase.projectId)?.name || testCase.projectId}
+             </span>
+           </div>
+           <div className="flex justify-between text-sm">
+             <span className="text-muted-foreground">Section:</span>
+             <span className="font-medium">{testCase.section}</span>
+           </div>
+           <div className="flex justify-between text-sm">
+             <span className="text-muted-foreground">Entity:</span>
+             <span className="font-medium">{testCase.entityName}</span>
+           </div>
+           
+         </div>
+          <div className="flex flex-wrap gap-1">
+            {testCase.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          <div className="pt-3 border-t">
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => onRun(testCase)}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Run Test
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+} 
