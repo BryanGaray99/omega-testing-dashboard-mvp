@@ -155,10 +155,14 @@ export function useProjects() {
   }, [resetDialogStates]);
 
   // Fetch projects
-  const { data: projectsData, isLoading: loadingProjects } = useQuery({
+  const { data: projectsData, isLoading: loadingProjects, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: fetchProjects,
   });
+
+  const reloadData = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const projects = Array.isArray(projectsData?.data) ? projectsData.data : [];
 
@@ -352,6 +356,7 @@ export function useProjects() {
     handleRunTests,
     handleDialogClose,
     resetDialogStates,
+    reloadData,
     
     // Mutations
     createProjectMutation,

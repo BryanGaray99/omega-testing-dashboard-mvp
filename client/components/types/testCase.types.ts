@@ -14,6 +14,7 @@ export interface TestCase {
   createdAt: string;
   updatedAt: string;
   tags: string[];
+  description?: string;
   hooks: any;
   examples: any;
   metadata: any;

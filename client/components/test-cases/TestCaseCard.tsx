@@ -32,7 +32,6 @@ interface TestCaseCardProps {
   onViewDetails: (testCase: TestCase) => void;
   onEdit: (testCase: TestCase) => void;
   onRun: (testCase: TestCase) => void;
-  onDuplicate: (testCase: TestCase) => void;
   onDelete: (testCase: TestCase) => void;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
@@ -44,7 +43,6 @@ export default function TestCaseCard({
   onViewDetails,
   onEdit,
   onRun,
-  onDuplicate,
   onDelete,
   openDropdownId,
   setOpenDropdownId,
@@ -123,8 +121,8 @@ export default function TestCaseCard({
   };
 
   return (
-    <Card className="relative">
-      <CardHeader className="pb-3">
+         <Card className="relative flex flex-col h-full">
+       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">
             {getExecutionStatusIcon(testCase.lastRunStatus, testCase.lastRun)}
@@ -156,14 +154,6 @@ export default function TestCaseCard({
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Test Case
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onRun(testCase)}>
-                <Play className="mr-2 h-4 w-4" />
-                Run Test
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(testCase)}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
@@ -175,59 +165,62 @@ export default function TestCaseCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <CardTitle className="text-lg">{testCase.name}</CardTitle>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <span
-            className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(testCase.testType)}`}
-          >
-            {testCase.testType}
-          </span>
-          <span
-            className={`px-2 py-1 rounded text-xs font-medium ${getMethodColor(testCase.method)}`}
-          >
-            {testCase.method}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-                   <div className="space-y-2">
-           <div className="flex justify-between text-sm">
-             <span className="text-muted-foreground">Project:</span>
-             <span className="font-medium">
-               {projects.find(p => p.id === testCase.projectId)?.name || testCase.projectId}
-             </span>
-           </div>
-           <div className="flex justify-between text-sm">
-             <span className="text-muted-foreground">Section:</span>
-             <span className="font-medium">{testCase.section}</span>
-           </div>
-           <div className="flex justify-between text-sm">
-             <span className="text-muted-foreground">Entity:</span>
-             <span className="font-medium">{testCase.entityName}</span>
-           </div>
-           
+                 <div className="text-xs text-muted-foreground mb-1">{testCase.testCaseId}</div>
+         <CardTitle className="text-lg">{testCase.name}</CardTitle>
+         <div className="flex flex-wrap gap-2 mt-2">
+           <span
+             className={`px-2 py-1 rounded text-xs font-medium ${getMethodColor(testCase.method)}`}
+           >
+             {testCase.method}
+           </span>
+           <span
+             className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(testCase.testType)}`}
+           >
+             {testCase.testType}
+           </span>
          </div>
-          <div className="flex flex-wrap gap-1">
-            {testCase.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-          <div className="pt-3 border-t">
-            <Button
-              className="w-full"
-              variant="outline"
-              size="sm"
-              onClick={() => onRun(testCase)}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Run Test
-            </Button>
-          </div>
-        </div>
-      </CardContent>
+      </CardHeader>
+             <CardContent className="flex-1 flex flex-col">
+         <div className="space-y-3 flex-1">
+           <div className="space-y-2">
+             <div className="flex justify-between text-sm">
+               <span className="text-muted-foreground">Project:</span>
+               <span className="font-medium">
+                 {projects.find(p => p.id === testCase.projectId)?.name || testCase.projectId}
+               </span>
+             </div>
+             <div className="flex justify-between text-sm">
+               <span className="text-muted-foreground">Section:</span>
+               <span className="font-medium">{testCase.section}</span>
+             </div>
+             <div className="flex justify-between text-sm">
+               <span className="text-muted-foreground">Entity:</span>
+               <span className="font-medium">{testCase.entityName}</span>
+             </div>
+           </div>
+           <div className="flex justify-between text-sm">
+             <span className="text-muted-foreground">Tags:</span>
+             <div className="flex flex-wrap gap-1">
+               {testCase.tags.map((tag) => (
+                 <Badge key={tag} variant="secondary" className="text-xs">
+                   {tag}
+                 </Badge>
+               ))}
+             </div>
+           </div>
+         </div>
+         <div className="pt-3 border-t mt-auto">
+           <Button
+             className="w-full"
+             variant="outline"
+             size="sm"
+             onClick={() => onRun(testCase)}
+           >
+             <Play className="h-4 w-4 mr-2" />
+             Run Test
+           </Button>
+         </div>
+       </CardContent>
     </Card>
   );
 } 

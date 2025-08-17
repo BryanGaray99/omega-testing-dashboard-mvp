@@ -6,6 +6,7 @@ import EndpointComprehensiveDialog from "@/components/endpoints/EndpointComprehe
 import EndpointEmptyState from "@/components/endpoints/EndpointEmptyState";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 export default function Endpoints() {
   const {
@@ -51,7 +52,20 @@ export default function Endpoints() {
     handleComprehensiveDelete,
     handleEditEndpoint,
     handleDialogClose,
+    reloadData,
   } = useEndpoints();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await reloadData();
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,10 +94,15 @@ export default function Endpoints() {
         <div className="flex flex-row gap-2 ml-auto">
           <Button
             variant="outline"
-            onClick={() => window.location.reload()}
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Page
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
           </Button>
           <EndpointRegisterDialog
             isOpen={isRegisterDialogOpen}
@@ -121,7 +140,7 @@ export default function Endpoints() {
       />
 
       {/* Endpoints Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-500 ${isRefreshing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         {filteredEndpoints.map((endpoint) => (
           <EndpointCard
             key={endpoint.endpointId}

@@ -1,19 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
-import LoginDialog from "./LoginDialog";
+import SyncProjectDialog from "./SyncProjectDialog";
 import {
   BarChart3,
   Settings,
@@ -28,34 +18,40 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
-  LogIn,
-  LogOut,
-  User,
   FileText,
+  RefreshCw,
+  Layers,
 } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  hidden?: boolean;
+}
+
+const navigation: NavigationItem[] = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Endpoints", href: "/endpoints", icon: TestTube },
   { name: "Test Cases", href: "/test-cases", icon: BarChart3 },
+  { name: "Test Suites", href: "/test-suites", icon: Layers },
   { name: "Execution", href: "/execution", icon: PlayCircle },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Logs", href: "/logs", icon: FileText },
-  { name: "AI Assistant", href: "/ai-assistant", icon: Bot },
+  { name: "Reports", href: "/reports", icon: BarChart3, hidden: true },
+  { name: "Logs", href: "/logs", icon: FileText, hidden: true },
+  { name: "AI Assistant", href: "/ai-assistant", icon: Bot, hidden: true },
 ];
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showSyncProjectDialog, setShowSyncProjectDialog] = useState(false);
   const location = useLocation();
-  const { user, logout, isFeatureEnabled } = useAuth();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -121,7 +117,7 @@ export default function Layout({ children }: LayoutProps) {
               </Button>
             </div>
             <nav className="mt-8 px-4">
-              {navigation.map((item) => {
+              {navigation.filter(item => !item.hidden).map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -176,7 +172,7 @@ export default function Layout({ children }: LayoutProps) {
           <nav
             className={cn("mt-8 flex-1", sidebarCollapsed ? "px-2" : "px-4")}
           >
-            {navigation.map((item) => {
+            {navigation.filter(item => !item.hidden).map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
@@ -249,69 +245,39 @@ export default function Layout({ children }: LayoutProps) {
                 Omega Testing
               </h1>
             </div>
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleDarkMode}
+                className="h-8 w-8"
+              >
                 {darkMode ? (
-                  <Sun className="h-5 w-5" />
+                  <Sun className="h-4 w-4" />
                 ) : (
-                  <Moon className="h-5 w-5" />
+                  <Moon className="h-4 w-4" />
                 )}
               </Button>
-              <Button variant="ghost" size="icon" asChild>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                className="h-8 w-8"
+              >
                 <Link to="/settings">
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-4 w-4" />
                 </Link>
               </Button>
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative h-8 w-8 rounded-full"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>
-                          {user.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {user.name}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
 
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowLoginDialog(true)}
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => setShowSyncProjectDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Sync Project
+              </Button>
             </div>
           </div>
         </div>
@@ -320,8 +286,7 @@ export default function Layout({ children }: LayoutProps) {
         <main className="flex-1">{children}</main>
       </div>
 
-      {/* Login Dialog */}
-      <LoginDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
+      <SyncProjectDialog open={showSyncProjectDialog} onOpenChange={setShowSyncProjectDialog} />
     </div>
   );
 }

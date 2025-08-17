@@ -426,5 +426,6 @@ export function useEndpoints() {
     handleComprehensiveDelete,
     handleEditEndpoint,
     handleDialogClose,
+    reloadData,
   };
 } 

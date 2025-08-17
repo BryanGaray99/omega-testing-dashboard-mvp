@@ -15,6 +15,7 @@ import Projects from "./pages/Projects";
 // import ProjectEditor from "./pages/ProjectEditor";
 import Endpoints from "./pages/Endpoints";
 import TestCases from "./pages/TestCases";
+import TestSuites from "./pages/TestSuites";
 import Execution from "./pages/Execution";
 import Reports from "./pages/Reports";
 import Logs from "./pages/Logs";
@@ -73,6 +74,14 @@ const App = () => (
               element={
                 <Layout>
                   <TestCases />
+                </Layout>
+              }
+            />
+            <Route
+              path="/test-suites"
+              element={
+                <Layout>
+                  <TestSuites />
                 </Layout>
               }
             />

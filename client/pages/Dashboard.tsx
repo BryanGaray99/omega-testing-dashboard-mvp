@@ -7,16 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3,
-  PlayCircle,
   CheckCircle,
   XCircle,
   Clock,
   TrendingUp,
   FolderKanban,
   Plus,
-  Zap,
-  TestTube,
-  Bot,
 } from "lucide-react";
 
 // Fetch helpers
@@ -86,7 +82,7 @@ export default function Dashboard() {
             Welcome to Omega Testing
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Your comprehensive Omega Testing dashboard
+            Your comprehensive assistant for api testing administration
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
@@ -94,12 +90,6 @@ export default function Dashboard() {
             <Link to="/projects">
               <Plus className="h-4 w-4 mr-2" />
               New Project
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/ai-assistant">
-              <Bot className="h-4 w-4 mr-2" />
-              AI Assistant
             </Link>
           </Button>
         </div>
@@ -160,53 +150,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-warning">{loading ? "-" : `${(averageExecutionTime / 1000).toFixed(1)}s`}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full justify-start" variant="outline">
-              <Link to="/projects">
-                <FolderKanban className="h-4 w-4 mr-2" />
-                Create New Project
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start" variant="outline">
-              <Link to="/endpoints">
-                <TestTube className="h-4 w-4 mr-2" />
-                Register Endpoint
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start" variant="outline">
-              <Link to="/test-cases">
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Build Test Case
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start" variant="outline">
-              <Link to="/execution">
-                <Zap className="h-4 w-4 mr-2" />
-                Run Tests
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-        {/* Recent Activity: puedes implementar esto con los últimos proyectos o endpoints si lo deseas */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-muted-foreground text-sm">
-              {/* Aquí puedes mostrar los últimos proyectos o endpoints creados si lo deseas */}
-              No recent activity available.
-            </div>
           </CardContent>
         </Card>
       </div>

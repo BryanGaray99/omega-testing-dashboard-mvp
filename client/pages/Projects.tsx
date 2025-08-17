@@ -8,6 +8,7 @@ import ProjectEmptyState from "@/components/projects/ProjectEmptyState";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function Projects() {
   const { toast } = useToast();
@@ -44,12 +45,25 @@ export default function Projects() {
     handleConfirmDelete,
     handleRunTests,
     handleDialogClose,
+    reloadData,
     
     // Mutations
     createProjectMutation,
     updateProjectMutation,
     deleteProjectMutation,
   } = useProjects();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await reloadData();
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (loadingProjects) {
     return (
@@ -83,10 +97,15 @@ export default function Projects() {
         <div className="flex flex-row gap-2 ml-auto">
           <Button
             variant="outline"
-            onClick={() => window.location.reload()}
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Page
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
           </Button>
           <ProjectRegisterDialog
             isOpen={isCreateDialogOpen}
@@ -115,7 +134,7 @@ export default function Projects() {
       />
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-500 ${isRefreshing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         {filteredProjects.map((project) => (
           <ProjectCard
             key={project.id}

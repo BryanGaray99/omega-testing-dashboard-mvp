@@ -16,51 +16,45 @@ interface ProjectOption {
   displayName?: string;
 }
 
-interface TestCaseFiltersProps {
+interface TestSuiteFiltersProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   projectFilter: string;
   setProjectFilter: (value: string) => void;
+  typeFilter: string;
+  setTypeFilter: (value: string) => void;
+  statusFilter: string;
+  setStatusFilter: (value: string) => void;
   sectionFilter: string;
   setSectionFilter: (value: string) => void;
   entityFilter: string;
   setEntityFilter: (value: string) => void;
-  methodFilter: string;
-  setMethodFilter: (value: string) => void;
-  statusFilter: string; // execution status: all | pending | passed | failed
-  setStatusFilter: (value: string) => void;
   projects: ProjectOption[];
-  methods: string[];
-  sections: string[];
-  entities: string[];
-  sortBy: 'updatedAt' | 'createdAt' | 'lastRun';
-  setSortBy: (v: 'updatedAt' | 'createdAt' | 'lastRun') => void;
-  sortOrder: 'asc' | 'desc';
-  setSortOrder: (v: 'asc' | 'desc') => void;
+  sortBy: 'updatedAt' | 'createdAt' | 'lastExecutedAt' | 'name';
+  setSortBy: (v: 'updatedAt' | 'createdAt' | 'lastExecutedAt' | 'name') => void;
+  sortOrder: 'ASC' | 'DESC';
+  setSortOrder: (v: 'ASC' | 'DESC') => void;
 }
 
-export default function TestCaseFilters({
+export default function TestSuiteFilters({
   searchTerm,
   setSearchTerm,
   projectFilter,
   setProjectFilter,
+  typeFilter,
+  setTypeFilter,
+  statusFilter,
+  setStatusFilter,
   sectionFilter,
   setSectionFilter,
   entityFilter,
   setEntityFilter,
-  methodFilter,
-  setMethodFilter,
-  statusFilter,
-  setStatusFilter,
   projects,
-  methods,
-  sections,
-  entities,
   sortBy,
   setSortBy,
   sortOrder,
   setSortOrder,
-}: TestCaseFiltersProps) {
+}: TestSuiteFiltersProps) {
   const getProjectName = (p: ProjectOption) => p.displayName || p.name || p.id;
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -70,7 +64,7 @@ export default function TestCaseFilters({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search test cases..."
+            placeholder="Search test suites..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -85,7 +79,7 @@ export default function TestCaseFilters({
       {showAdvanced && (
         <div className="flex gap-2 flex-wrap items-center">
           {/* Project */}
-          <Select value={projectFilter} onValueChange={(v) => { setProjectFilter(v); setSectionFilter('all'); setEntityFilter('all'); }}>
+          <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
@@ -99,46 +93,19 @@ export default function TestCaseFilters({
             </SelectContent>
           </Select>
 
-          {/* Section */}
-          <Select value={sectionFilter} onValueChange={(v) => { setSectionFilter(v); setEntityFilter('all'); }}>
+          {/* Type */}
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Sections" />
+              <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Sections</SelectItem>
-              {sections.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="test_set">Test Set</SelectItem>
+              <SelectItem value="test_plan">Test Plan</SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Entity */}
-          <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Entities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Entities</SelectItem>
-              {entities.map((e) => (
-                <SelectItem key={e} value={e}>{e}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Method */}
-          <Select value={methodFilter} onValueChange={setMethodFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="All Methods" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Methods</SelectItem>
-              {methods.map((m) => (
-                <SelectItem key={m} value={m}>{m}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Execution Status */}
+          {/* Status */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
@@ -146,8 +113,10 @@ export default function TestCaseFilters({
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="running">Running</SelectItem>
               <SelectItem value="passed">Passed</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="skipped">Skipped</SelectItem>
             </SelectContent>
           </Select>
 
@@ -159,7 +128,8 @@ export default function TestCaseFilters({
             <SelectContent>
               <SelectItem value="updatedAt">Updated At</SelectItem>
               <SelectItem value="createdAt">Created At</SelectItem>
-              <SelectItem value="lastRun">Last Run</SelectItem>
+              <SelectItem value="lastExecutedAt">Last Executed</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
             </SelectContent>
           </Select>
 
@@ -169,12 +139,12 @@ export default function TestCaseFilters({
               <SelectValue placeholder="Order" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">Desc</SelectItem>
-              <SelectItem value="asc">Asc</SelectItem>
+              <SelectItem value="DESC">Desc</SelectItem>
+              <SelectItem value="ASC">Asc</SelectItem>
             </SelectContent>
           </Select>
         </div>
       )}
     </div>
   );
-} 
+}

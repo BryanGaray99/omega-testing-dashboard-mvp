@@ -2,9 +2,13 @@ import { useTestCases } from "@/hooks/useTestCases";
 import TestCaseCard from "@/components/test-cases/TestCaseCard";
 import TestCaseFilters from "@/components/test-cases/TestCaseFilters";
 import TestCaseCreateDialog from "@/components/test-cases/TestCaseCreateDialog";
+import TestCaseComprehensiveDialog from "@/components/test-cases/TestCaseComprehensiveDialog";
+import TestCaseDeleteDialog from "@/components/test-cases/TestCaseDeleteDialog";
 import TestCaseEmptyState from "@/components/test-cases/TestCaseEmptyState";
+import ScenarioEditor from "@/components/test-cases/ScenarioEditor";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Plus } from "lucide-react";
+import { RefreshCw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export default function TestCases() {
   const {
@@ -16,24 +20,85 @@ export default function TestCases() {
     setProjectFilter,
     statusFilter,
     setStatusFilter,
-    priorityFilter,
-    setPriorityFilter,
+    methodFilter,
+    setMethodFilter,
+    sectionFilter,
+    setSectionFilter,
+    entityFilter,
+    setEntityFilter,
     isCreateDialogOpen,
     setIsCreateDialogOpen,
+    isComprehensiveDialogOpen,
+    setIsComprehensiveDialogOpen,
+    selectedTestCase,
+    editingComprehensiveTestCase,
+    setEditingComprehensiveTestCase,
+    isEditing,
+    setIsEditing,
+    isUpdating,
     openDropdownId,
     setOpenDropdownId,
     filteredTestCases,
+    visibleTestCases,
     projects,
-    projectSections,
+    availableMethods,
+    availableSections,
+    availableEntities,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    totalPages,
+    
+    // Delete dialog state
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    deletingTestCase,
+    deleteConfirmation,
+    setDeleteConfirmation,
+    isDeleting,
+
+    // Editor state
+    isEditorOpen,
+    setIsEditorOpen,
+    editingTestCaseForSteps,
+    isUpdatingSteps,
 
     // Actions
     handleCreateTestCase,
     handleEditTestCase,
     handleDeleteTestCase,
     handleRunTestCase,
-    handleDuplicateTestCase,
     handleViewDetails,
+    handleComprehensiveDialogClose,
+    handleComprehensiveUpdate,
+    handleComprehensiveDelete,
+    handleComprehensiveRun,
+    handleConfirmDelete,
+    handleCancelDelete,
+    handleEditSteps,
+    handleSaveSteps,
+    handleCancelEditSteps,
+    handleSaveScenarioSteps,
+    handleEditScenario,
+    reloadData,
+    reloadDataAndUpdateTestCase,
   } = useTestCases();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await reloadData();
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -62,34 +127,50 @@ export default function TestCases() {
         <div className="flex flex-row gap-2 ml-auto">
           <Button
             variant="outline"
-            onClick={() => window.location.reload()}
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Page
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
           </Button>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Test Case
-          </Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Test Case
+              </Button>
         </div>
       </div>
 
       {/* Filters */}
-                   <TestCaseFilters
-               searchTerm={searchTerm}
-               setSearchTerm={setSearchTerm}
-               projectFilter={projectFilter}
-               setProjectFilter={setProjectFilter}
-               statusFilter={statusFilter}
-               setStatusFilter={setStatusFilter}
-               priorityFilter={priorityFilter}
-               setPriorityFilter={setPriorityFilter}
-               projects={projectSections}
-             />
+      <TestCaseFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        projectFilter={projectFilter}
+        setProjectFilter={setProjectFilter}
+        sectionFilter={sectionFilter}
+        setSectionFilter={setSectionFilter}
+        entityFilter={entityFilter}
+        setEntityFilter={setEntityFilter}
+        methodFilter={methodFilter}
+        setMethodFilter={setMethodFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        projects={projects}
+        methods={availableMethods}
+        sections={availableSections}
+        entities={availableEntities}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+      />
 
       {/* Test Cases Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {filteredTestCases.map((testCase) => (
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-500 ${isRefreshing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        {visibleTestCases.map((testCase) => (
                <TestCaseCard
                  key={testCase.testCaseId}
                  testCase={testCase}
@@ -97,13 +178,27 @@ export default function TestCases() {
                  onViewDetails={handleViewDetails}
                  onEdit={handleEditTestCase}
                  onRun={handleRunTestCase}
-                 onDuplicate={handleDuplicateTestCase}
                  onDelete={handleDeleteTestCase}
                  openDropdownId={openDropdownId}
                  setOpenDropdownId={setOpenDropdownId}
                />
-             ))}
+        ))}
       </div>
+
+      {/* Pagination */}
+      {filteredTestCases.length > 0 && (
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredTestCases.length === 0 && (
@@ -113,12 +208,58 @@ export default function TestCases() {
       )}
 
       {/* Test Case Create Dialog */}
-                   <TestCaseCreateDialog
-               isOpen={isCreateDialogOpen}
-               onOpenChange={setIsCreateDialogOpen}
-               projects={projectSections}
-               onCreate={handleCreateTestCase}
-             />
+      <TestCaseCreateDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        projects={projects}
+        onCreateWithData={async (data, projectId) => {
+          await reloadData();
+        }}
+      />
+
+      {/* Test Case Comprehensive Dialog */}
+              <TestCaseComprehensiveDialog
+          isOpen={isComprehensiveDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleComprehensiveDialogClose();
+            } else {
+              setIsComprehensiveDialogOpen(true);
+            }
+          }}
+          selectedTestCase={selectedTestCase}
+          editingTestCase={editingComprehensiveTestCase}
+          setEditingTestCase={setEditingComprehensiveTestCase}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          isUpdating={isUpdating}
+          projects={projects}
+          onUpdate={handleComprehensiveUpdate}
+          onDelete={handleComprehensiveDelete}
+          onRun={handleComprehensiveRun}
+          onClose={handleComprehensiveDialogClose}
+          onEditSteps={() => selectedTestCase && handleEditSteps(selectedTestCase)}
+          reloadData={reloadData}
+          reloadDataAndUpdateTestCase={reloadDataAndUpdateTestCase}
+          onEditScenario={handleEditScenario}
+        />
+      
+              <TestCaseDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleCancelDelete();
+            } else {
+              setIsDeleteDialogOpen(true);
+            }
+          }}
+          deletingTestCase={deletingTestCase}
+          deleteConfirmation={deleteConfirmation}
+          setDeleteConfirmation={setDeleteConfirmation}
+          onConfirmDelete={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isPending={isDeleting}
+        />
     </div>
   );
 }
