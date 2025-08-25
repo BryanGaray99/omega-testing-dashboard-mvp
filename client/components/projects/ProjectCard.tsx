@@ -277,10 +277,10 @@ export default function ProjectCard({
           <div className="pt-3 border-t">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="w-full" variant="outline">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Project
-                </Button>
+                            <Button className="w-full bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400" variant="outline">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Project
+            </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Open in Editor</DropdownMenuLabel>

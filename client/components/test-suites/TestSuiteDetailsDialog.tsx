@@ -13,6 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { TestSuite } from '@/services/testSuiteService';
 import { 
   Play, 
@@ -27,6 +33,7 @@ import {
   FileText,
   Tag,
   Layers,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -35,8 +42,9 @@ interface TestSuiteDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedTestSuite: TestSuite | null;
   onDelete: () => void;
-  onRun: () => void;
   onClose: () => void;
+  onNavigateToTestCase?: (testCaseId: string) => void;
+  onNavigateToTestSet?: (testSetId: string) => void;
 }
 
 export default function TestSuiteDetailsDialog({
@@ -44,8 +52,9 @@ export default function TestSuiteDetailsDialog({
   onOpenChange,
   selectedTestSuite,
   onDelete,
-  onRun,
   onClose,
+  onNavigateToTestCase,
+  onNavigateToTestSet,
 }: TestSuiteDetailsDialogProps) {
   const [activeTab, setActiveTab] = useState('basic-info');
 
@@ -60,7 +69,7 @@ export default function TestSuiteDetailsDialog({
       case 'running':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
       case 'passed':
-        return 'bg-green-100 text-green-800 hover:bg-green-100';
+        return 'bg-blue-500 text-white hover:bg-blue-700';
       case 'failed':
         return 'bg-red-100 text-red-800 hover:bg-red-100';
       case 'skipped':
@@ -138,7 +147,7 @@ export default function TestSuiteDetailsDialog({
                   <div className="space-y-2">
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Entity</label>
-                      <p className="text-sm">{testSuite.entity}</p>
+                      <p className="text-sm">{testSuite.entity || 'N/A (Test Plan)'}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Name</label>
@@ -196,19 +205,34 @@ export default function TestSuiteDetailsDialog({
             <div className="border rounded-lg p-3">
               <h4 className="font-medium mb-2 flex items-center gap-2">
                 <Layers className="h-4 w-4" />
-                Test Cases Content
+                {testSuite.type === 'test_plan' ? 'Test Sets Content' : 'Test Cases Content'}
               </h4>
               
-              {/* Test Cases */}
-              {testSuite.testCases && testSuite.testCases.length > 0 && (
+              {/* Content based on type */}
+              {testSuite.type === 'test_set' && testSuite.testCases && testSuite.testCases.length > 0 && (
                 <div className="mb-4">
                   <h5 className="font-medium mb-2">Test Cases ({testSuite.testCases.length})</h5>
                   <div className="space-y-2">
                     {testSuite.testCases.map((testCase, index) => (
-                      <div key={index} className="p-2 border rounded bg-muted/50">
+                      <div key={index} className="p-2 border rounded bg-muted/50 hover:bg-muted/70 transition-colors">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-sm font-medium">{testCase.name}</p>
+                          <div className="flex-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => onNavigateToTestCase?.(testCase.testCaseId)}
+                                    className="text-sm font-medium text-left hover:text-blue-600 hover:underline cursor-pointer transition-colors flex items-center gap-1"
+                                  >
+                                    {testCase.name}
+                                    <ExternalLink className="h-3 w-3 opacity-60" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Ver detalles del test case</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             <p className="text-xs text-muted-foreground">{testCase.testCaseId}</p>
                           </div>
                           <Badge variant="outline" className="text-xs">
@@ -221,16 +245,30 @@ export default function TestSuiteDetailsDialog({
                 </div>
               )}
 
-              {/* Test Sets (for Test Plans) */}
-              {testSuite.testSets && testSuite.testSets.length > 0 && (
+              {testSuite.type === 'test_plan' && testSuite.testSets && testSuite.testSets.length > 0 && (
                 <div>
                   <h5 className="font-medium mb-2">Test Sets ({testSuite.testSets.length})</h5>
                   <div className="space-y-2">
                     {testSuite.testSets.map((testSet, index) => (
-                      <div key={index} className="p-2 border rounded bg-muted/50">
+                      <div key={index} className="p-2 border rounded bg-muted/50 hover:bg-muted/70 transition-colors">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-sm font-medium">{testSet.name}</p>
+                          <div className="flex-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => onNavigateToTestSet?.(testSet.setId)}
+                                    className="text-sm font-medium text-left hover:text-blue-600 hover:underline cursor-pointer transition-colors flex items-center gap-1"
+                                  >
+                                    {testSet.name}
+                                    <ExternalLink className="h-3 w-3 opacity-60" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Ver detalles del test set</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             <p className="text-xs text-muted-foreground">{testSet.setId}</p>
                           </div>
                           <Badge variant="outline" className="text-xs">
@@ -240,6 +278,13 @@ export default function TestSuiteDetailsDialog({
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {((testSuite.type === 'test_set' && (!testSuite.testCases || testSuite.testCases.length === 0)) ||
+                (testSuite.type === 'test_plan' && (!testSuite.testSets || testSuite.testSets.length === 0))) && (
+                <div className="text-center py-4 text-muted-foreground">
+                  <p>No content available for this {testSuite.type === 'test_set' ? 'test set' : 'test plan'}.</p>
                 </div>
               )}
 
@@ -292,10 +337,14 @@ export default function TestSuiteDetailsDialog({
               </div>
 
               <div className="border rounded-lg p-3">
-                <h4 className="font-medium mb-2">Test Results</h4>
+                <h4 className="font-medium mb-2">
+                  {testSuite.type === 'test_plan' ? 'Test Plan Results' : 'Test Results'}
+                </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Total:</span>
+                    <span className="text-sm text-muted-foreground">
+                      {testSuite.type === 'test_plan' ? 'Total Cases:' : 'Total:'}
+                    </span>
                     <span className="text-sm font-medium">{testSuite.totalTestCases}</span>
                   </div>
                   <div className="flex justify-between">
@@ -348,14 +397,6 @@ export default function TestSuiteDetailsDialog({
         
         <DialogFooter>
           <div className="flex gap-2 w-full justify-end">
-            <Button
-              variant="outline"
-              onClick={onRun}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Execute Test Suite
-            </Button>
             <Button
               variant="destructive"
               onClick={onDelete}

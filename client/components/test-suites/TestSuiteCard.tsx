@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useExecution } from "@/contexts/ExecutionContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,7 +30,7 @@ interface TestSuiteCardProps {
   projects: any[];
   onViewDetails: (testSuite: TestSuite) => void;
   onEdit: (testSuite: TestSuite) => void;
-  onRun: (testSuite: TestSuite) => void;
+  onRun: (testSuite: TestSuite) => Promise<any>;
   onDelete: (testSuite: TestSuite) => void;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
@@ -45,6 +46,11 @@ export default function TestSuiteCard({
   openDropdownId,
   setOpenDropdownId,
 }: TestSuiteCardProps) {
+  const { isExecuting, showExecuted, getSuiteExecutionId } = useExecution();
+  
+  // Obtener el executionId real para este test suite, o usar el suiteId como fallback
+  const realExecutionId = getSuiteExecutionId(testSuite.suiteId);
+  const executionId = realExecutionId || `testsuite-${testSuite.suiteId}`;
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "test_set":
@@ -63,7 +69,7 @@ export default function TestSuiteCard({
       case 'running':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
       case 'passed':
-        return 'bg-green-100 text-green-800 hover:bg-green-100';
+        return 'bg-blue-500 text-white hover:bg-blue-700';
       case 'failed':
         return 'bg-red-100 text-red-800 hover:bg-red-100';
       case 'skipped':
@@ -85,6 +91,16 @@ export default function TestSuiteCard({
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
         return <Calendar className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const handleExecute = async () => {
+    if (isExecuting(executionId)) return;
+    
+    try {
+      await onRun(testSuite);
+    } catch (error) {
+      console.error('Error executing test suite:', error);
     }
   };
 
@@ -139,9 +155,10 @@ export default function TestSuiteCard({
           <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
             {testSuite.type === 'test_set' ? 'Test Set' : 'Test Plan'}
           </span>
-          {testSuite.section && testSuite.entity && (
+          {testSuite.section && (
             <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
-              {testSuite.section} • {testSuite.entity}
+              {testSuite.section}
+              {testSuite.entity && ` • ${testSuite.entity}`}
             </span>
           )}
         </div>
@@ -169,9 +186,20 @@ export default function TestSuiteCard({
             )}
           </div>
           
+          {testSuite.type === 'test_plan' && testSuite.testSets && testSuite.testSets.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Test Sets:</span>
+                <span className="font-medium">{testSuite.testSets.length}</span>
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="text-muted-foreground">Test Cases:</span>
+              <span className="text-muted-foreground">
+                {testSuite.type === 'test_plan' ? 'Total Cases:' : 'Test Cases:'}
+              </span>
               <span className="ml-1 font-medium">{testSuite.totalTestCases}</span>
             </div>
             <div>
@@ -187,35 +215,51 @@ export default function TestSuiteCard({
               <span className="ml-1 font-medium text-yellow-600">{testSuite.skippedTestCases}</span>
             </div>
           </div>
-
-          {testSuite.tags && testSuite.tags.length > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tags:</span>
-              <div className="flex flex-wrap gap-1">
-                {testSuite.tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {testSuite.tags.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{testSuite.tags.length - 3}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
         </div>
+        
+        <div className="h-6"></div>
         <div className="pt-3 border-t mt-auto">
-          <Button
-            className="w-full"
-            variant="outline"
-            size="sm"
-            onClick={() => onRun(testSuite)}
-          >
-            <Play className="h-4 w-4 mr-2" />
-            Execute Test Suite
-          </Button>
+          <div className="relative">
+            {isExecuting(executionId) && (
+              <div className="absolute inset-0 bg-green-100 rounded-md overflow-hidden">
+                <div 
+                  className="h-full w-full"
+                  style={{
+                    background: `repeating-linear-gradient(
+                      45deg,
+                      transparent,
+                      transparent 10px,
+                      rgba(34, 197, 94, 0.3) 10px,
+                      rgba(34, 197, 94, 0.3) 20px
+                    )`,
+                    animation: 'moveStripes 3s linear infinite'
+                  }}
+                />
+                <style>{`
+                  @keyframes moveStripes {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                  }
+                `}</style>
+              </div>
+            )}
+            <Button
+              className={`w-full relative z-10 ${
+                isExecuting(executionId)
+                  ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
+                  : showExecuted(executionId)
+                  ? 'bg-green-100 text-green-800 border-green-300'
+                  : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
+              }`}
+              variant="outline"
+              size="sm"
+              onClick={handleExecute}
+              disabled={isExecuting(executionId)}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {isExecuting(executionId) ? 'Executing...' : showExecuted(executionId) ? 'Executed' : 'Execute Test Suite'}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

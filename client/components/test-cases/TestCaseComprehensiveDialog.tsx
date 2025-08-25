@@ -45,7 +45,6 @@ interface TestCaseComprehensiveDialogProps {
   projects: any[];
   onUpdate: () => void;
   onDelete: () => void;
-  onRun: () => void;
   onClose: () => void;
   onEditSteps: () => void;
   reloadData: () => Promise<void>;
@@ -65,19 +64,25 @@ export default function TestCaseComprehensiveDialog({
   projects,
   onUpdate,
   onDelete,
-  onRun,
   onClose,
   onEditSteps,
   reloadData,
   reloadDataAndUpdateTestCase,
   onEditScenario,
 }: TestCaseComprehensiveDialogProps) {
-  const [activeTab, setActiveTab] = useState('basic-info');
+  const [activeTab, setActiveTab] = useState('basic');
   const [isEditingScenario, setIsEditingScenario] = useState(false);
 
-  // Activar la edición del escenario cuando se abra el modal desde "Edit Test Case"
+  // Handle opening dialog with specific tab and scenario editing
   useEffect(() => {
     if (isOpen && selectedTestCase) {
+      // Check if we should open in a specific tab
+      const desiredTab = sessionStorage.getItem('openDialogTab');
+      if (desiredTab && ['basic', 'scenario', 'execution'].includes(desiredTab)) {
+        setActiveTab(desiredTab);
+        sessionStorage.removeItem('openDialogTab');
+      }
+
       // Si el modal se abrió desde "Edit Test Case", activar la edición del escenario
       const shouldEditScenario = sessionStorage.getItem('editScenario') === 'true';
       if (shouldEditScenario) {
@@ -451,14 +456,6 @@ export default function TestCaseComprehensiveDialog({
                           <DialogFooter>
                 {!isEditing ? (
                   <div className="flex gap-2 w-full justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={onRun}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Run Test
-                    </Button>
                     <Button
                       variant="destructive"
                       onClick={onDelete}

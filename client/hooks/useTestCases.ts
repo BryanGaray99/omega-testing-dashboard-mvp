@@ -53,7 +53,7 @@ export function useTestCases() {
   });
 
   // Sorting & Pagination
-  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastRun'>('updatedAt');
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastRun' | 'name'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
@@ -116,6 +116,36 @@ export function useTestCases() {
     }
     loadData();
   }, [toast]);
+
+  // Handle URL parameters for opening test case details
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const testCaseId = searchParams.get('testCaseId');
+    const openDetails = searchParams.get('openDetails');
+    const tab = searchParams.get('tab');
+
+    if (testCaseId && openDetails === 'true') {
+      // Find the test case by ID
+      const testCase = testCases.find(tc => tc.testCaseId === testCaseId);
+      if (testCase) {
+        setSelectedTestCase(testCase);
+        setEditingComprehensiveTestCase(testCase);
+        setIsComprehensiveDialogOpen(true);
+        
+        // Store the desired tab in sessionStorage for the dialog to use
+        if (tab) {
+          sessionStorage.setItem('openDialogTab', tab);
+        }
+        
+        // Clear URL parameters after opening the dialog
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('testCaseId');
+        newUrl.searchParams.delete('openDetails');
+        newUrl.searchParams.delete('tab');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, [testCases]);
 
   useEffect(() => {
     return () => {
@@ -315,22 +345,26 @@ export function useTestCases() {
 
   const handleRunTestCase = async (testCase: TestCase) => {
     try {
-      await runTestCase(testCase.testCaseId, testCase.projectId, testCase.entityName, testCase.name);
+      const result = await runTestCase(testCase.testCaseId, testCase.projectId, testCase.entityName, testCase.name);
       
-      toast({
-        title: "Success",
-        description: "Test case execution started",
-      });
+      // Guardar el mapeo entre testCaseId y executionId para las animaciones
+      if (result.data?.executionId) {
+        console.log('Test case execution started with ID:', result.data.executionId);
+        // El mapeo se manejará en el componente TestCases.tsx usando el contexto
+      }
 
       // Recargar la lista tras ejecutar para reflejar lastRun/lastRunStatus cuando terminen
       const { testCases: allTestCases } = await reloadTestCasesData();
       setTestCases(allTestCases);
+      
+      return result; // Devolver el resultado para que el componente pueda acceder al executionId
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to run test case",
         variant: "destructive",
       });
+      throw error; // Re-lanzar el error para que el componente pueda manejarlo
     }
   };
 

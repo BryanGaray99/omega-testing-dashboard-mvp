@@ -33,8 +33,8 @@ interface TestCaseFiltersProps {
   methods: string[];
   sections: string[];
   entities: string[];
-  sortBy: 'updatedAt' | 'createdAt' | 'lastRun';
-  setSortBy: (v: 'updatedAt' | 'createdAt' | 'lastRun') => void;
+  sortBy: 'updatedAt' | 'createdAt' | 'lastRun' | 'name';
+  setSortBy: (v: 'updatedAt' | 'createdAt' | 'lastRun' | 'name') => void;
   sortOrder: 'asc' | 'desc';
   setSortOrder: (v: 'asc' | 'desc') => void;
 }

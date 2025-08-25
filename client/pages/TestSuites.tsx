@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useExecutionEvents } from '@/hooks/useExecutionEvents';
+import { useExecution } from '@/contexts/ExecutionContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +22,7 @@ import TestSuiteEditDialog from '@/components/test-suites/TestSuiteEditDialog';
 export default function TestSuites() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { filteredProjects } = useProjects();
   const projects = filteredProjects || [];
 
@@ -29,7 +33,7 @@ export default function TestSuites() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
   const [entityFilter, setEntityFilter] = useState('all');
-  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastExecutedAt' | 'name'>('updatedAt');
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastExecutedAt' | 'name'>('name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
@@ -51,6 +55,8 @@ export default function TestSuites() {
 
   // Get current project ID from URL or use first project
   const currentProjectId = projects.length > 0 ? projects[0].id : '';
+
+
 
   // Fetch test suites
   const {
@@ -91,6 +97,69 @@ export default function TestSuites() {
   const testSuites = testSuitesData?.testSuites || [];
   const totalItems = testSuitesData?.total || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Contexto de ejecución
+  const { startExecution, completeExecution, failExecution, setSuiteExecutionId } = useExecution();
+
+  // Handlers para eventos SSE
+  const handleExecutionStarted = useCallback((event: any) => {
+    console.log('TestSuites - Execution started:', event);
+    console.log('TestSuites - Execution ID:', event.executionId);
+    console.log('TestSuites - Test Suite ID:', event.testSuiteId);
+    
+    startExecution(event.executionId);
+    
+    // Si tenemos un testSuiteId, guardar el mapeo
+    if (event.testSuiteId) {
+      setSuiteExecutionId(event.testSuiteId, event.executionId);
+    }
+  }, [startExecution, setSuiteExecutionId]);
+
+  const handleExecutionCompleted = useCallback((event: any) => {
+    console.log('TestSuites - Execution completed:', event);
+    console.log('TestSuites - Execution ID:', event.executionId);
+    completeExecution(event.executionId);
+    // Recargar datos cuando termine una ejecución
+    refetch();
+  }, [completeExecution, refetch]);
+
+  const handleExecutionFailed = useCallback((event: any) => {
+    console.log('TestSuites - Execution failed:', event);
+    console.log('TestSuites - Execution ID:', event.executionId);
+    failExecution(event.executionId, event.message || 'Error desconocido');
+    // Recargar datos cuando falle una ejecución
+    refetch();
+  }, [failExecution, refetch]);
+
+  // Conectar a SSE
+  useExecutionEvents({
+    projectId: currentProjectId,
+    onExecutionStarted: handleExecutionStarted,
+    onExecutionCompleted: handleExecutionCompleted,
+    onExecutionFailed: handleExecutionFailed,
+    enabled: !!currentProjectId,
+  });
+
+  // Handle URL parameters for opening specific test suite details
+  useEffect(() => {
+    if (testSuites.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const testSetId = urlParams.get('testSetId');
+      const openDetails = urlParams.get('openDetails');
+      
+      if (testSetId && openDetails === 'true') {
+        const testSuite = testSuites.find(ts => ts.suiteId === testSetId);
+        if (testSuite) {
+          setSelectedTestSuite(testSuite);
+          setEditingTestSuite(testSuite);
+          setIsDetailsDialogOpen(true);
+          
+          // Clear URL parameters
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      }
+    }
+  }, [testSuites]);
 
   // Update test suite mutation
   const updateMutation = useMutation({
@@ -140,10 +209,7 @@ export default function TestSuites() {
   const executeMutation = useMutation({
     mutationFn: () => testSuiteService.executeTestSuite(currentProjectId, selectedTestSuite!.suiteId),
     onSuccess: (data) => {
-      toast({
-        title: "Test Suite Execution Started",
-        description: data.data.message,
-      });
+      // No mostrar toast de inicio, solo recargar datos
       refetch();
     },
     onError: (error: any) => {
@@ -177,10 +243,19 @@ export default function TestSuites() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleRun = (testSuite: TestSuite) => {
+  const handleRun = async (testSuite: TestSuite) => {
     setOpenDropdownId(null); // Close dropdown
     setSelectedTestSuite(testSuite);
-    executeMutation.mutate();
+    return new Promise((resolve, reject) => {
+      executeMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          resolve(data);
+        },
+        onError: (error) => {
+          reject(error);
+        }
+      });
+    });
   };
 
   const handleUpdate = () => {
@@ -264,6 +339,19 @@ export default function TestSuites() {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  // Navigation functions for hyperlinks
+  const handleNavigateToTestCase = (testCaseId: string) => {
+    // Abrir en nueva pestaña con la URL específica del test case y abrir automáticamente el diálogo
+    const testCaseUrl = `${window.location.origin}/test-cases?testCaseId=${testCaseId}&openDetails=true&tab=scenario`;
+    window.open(testCaseUrl, '_blank');
+  };
+
+  const handleNavigateToTestSet = (testSetId: string) => {
+    // Abrir en nueva pestaña con la URL específica del test set y abrir automáticamente el diálogo
+    const testSetUrl = `${window.location.origin}/test-suites?testSetId=${testSetId}&openDetails=true`;
+    window.open(testSetUrl, '_blank');
   };
 
   if (error) {
@@ -435,12 +523,9 @@ export default function TestSuites() {
              handleDelete(selectedTestSuite);
            }
          }}
-         onRun={() => {
-           if (selectedTestSuite) {
-             handleRun(selectedTestSuite);
-           }
-         }}
          onClose={() => setIsDetailsDialogOpen(false)}
+         onNavigateToTestCase={handleNavigateToTestCase}
+         onNavigateToTestSet={handleNavigateToTestSet}
        />
 
              <TestSuiteEditDialog

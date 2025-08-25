@@ -352,6 +352,36 @@ class TestSuiteService {
       totalTestCases: ts.totalTestCases,
     }));
   }
+
+  // Helper method to get test sets by section for test plans
+  async getTestSetsBySection(projectId: string, section: string): Promise<Array<{
+    suiteId: string;
+    name: string;
+    type: string;
+    totalTestCases: number;
+    section: string;
+    entity: string;
+  }>> {
+    const url = `${API_BASE}/projects/${projectId}/test-suites/test-sets/${section}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch test sets by section: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const testSets = data.data || data || [];
+    
+    return testSets.map((ts: any) => ({
+      suiteId: ts.suiteId,
+      name: ts.name,
+      type: ts.type,
+      totalTestCases: ts.totalTestCases,
+      section: ts.section,
+      entity: ts.entity,
+    }));
+  }
 }
 
 export const testSuiteService = new TestSuiteService();

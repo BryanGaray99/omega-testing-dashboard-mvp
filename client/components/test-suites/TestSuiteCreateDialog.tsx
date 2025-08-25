@@ -113,12 +113,12 @@ export default function TestSuiteCreateDialog({
     }
   }, [open, selectedProjectId, section]);
 
-  // Load test suites when type is test_plan
+  // Load test suites when type is test_plan and section is selected
   useEffect(() => {
-    if (open && selectedProjectId && type === 'test_plan') {
+    if (open && selectedProjectId && type === 'test_plan' && section) {
       loadAvailableTestSuites();
     }
-  }, [open, selectedProjectId, type]);
+  }, [open, selectedProjectId, type, section]);
 
   const loadAvailableSectionsAndEntities = async () => {
     try {
@@ -179,8 +179,8 @@ export default function TestSuiteCreateDialog({
   const loadAvailableTestSuites = async () => {
     setIsLoadingTestSuites(true);
     try {
-      // Use the testSuiteService to get available test suites
-      const testSuites = await testSuiteService.getAvailableTestSuites(selectedProjectId);
+      // Use the testSuiteService to get test sets by section for test plans
+      const testSuites = await testSuiteService.getTestSetsBySection(selectedProjectId, section);
       setAvailableTestSuites(testSuites);
     } catch (error: any) {
       // Handle 404 error gracefully - it means no test suites exist yet
@@ -261,10 +261,19 @@ export default function TestSuiteCreateDialog({
       return;
     }
 
-    if (type === 'test_set' && (!section || !entity)) {
+    if (!section) {
       toast({
         title: "Validation Error",
-        description: "Section and Entity are required for Test Set",
+        description: "Section is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (type === 'test_set' && !entity) {
+      toast({
+        title: "Validation Error",
+        description: "Entity is required for Test Set",
         variant: "destructive",
       });
       return;
@@ -295,7 +304,7 @@ export default function TestSuiteCreateDialog({
         description: description.trim(),
         type,
         section: section.trim(),
-        entity: entity.trim(),
+        entity: type === 'test_set' ? entity.trim() : undefined,
         tags,
         testCaseIds: type === 'test_set' ? selectedTestCases : [],
         testSuiteIds: type === 'test_plan' ? selectedTestSuites : []
@@ -442,47 +451,6 @@ export default function TestSuiteCreateDialog({
                         </SelectContent>
                       </Select>
                     </div>
-
-                    {type === 'test_set' && (
-                      <>
-                        <div>
-                          <Label htmlFor="section">Section *</Label>
-                          <Select value={section} onValueChange={setSection} disabled={isLoadingSections}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={isLoadingSections ? "Loading..." : "Select section"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableSections.map((sectionName) => (
-                                <SelectItem key={sectionName} value={sectionName}>
-                                  {sectionName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="entity">Entity *</Label>
-                          <Select value={entity} onValueChange={setEntity} disabled={!section || isLoadingEntities}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={
-                                !section ? "Select section first" : 
-                                isLoadingEntities ? "Loading entities..." : 
-                                "Select entity"
-                              } />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableEntities.map((entityName) => (
-                                <SelectItem key={entityName} value={entityName}>
-                                  {entityName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </>
-                    )}
-
                   </div>
 
                   <div className="space-y-3">
@@ -498,29 +466,96 @@ export default function TestSuiteCreateDialog({
                     </div>
 
                     <div>
-                      <Label>Tags</Label>
+                      <Label htmlFor="tags">Tags</Label>
                       <div className="flex gap-2">
                         <Input
+                          id="tags"
                           placeholder="Add tag"
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+                                setTags([...tags, tagInput.trim()]);
+                                setTagInput('');
+                              }
+                            }
+                          }}
                         />
-                        <Button type="button" variant="outline" onClick={handleAddTag}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+                              setTags([...tags, tagInput.trim()]);
+                              setTagInput('');
+                            }
+                          }}
+                        >
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                       {tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveTag(tag)}>
-                              {tag} ×
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                ×
+                              </button>
                             </Badge>
                           ))}
                         </div>
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Section and Entity row - below the tabs */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="section">Section *</Label>
+                    <Select value={section} onValueChange={setSection} disabled={isLoadingSections}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoadingSections ? "Loading..." : "Select section"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSections.map((sectionName) => (
+                          <SelectItem key={sectionName} value={sectionName}>
+                            {sectionName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {type === 'test_set' && (
+                    <div>
+                      <Label htmlFor="entity">Entity *</Label>
+                      <Select value={entity} onValueChange={setEntity} disabled={!section || isLoadingEntities}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            !section ? "Select section first" : 
+                            isLoadingEntities ? "Loading entities..." : 
+                            "Select entity"
+                          } />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableEntities.map((entityName) => (
+                            <SelectItem key={entityName} value={entityName}>
+                              {entityName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 

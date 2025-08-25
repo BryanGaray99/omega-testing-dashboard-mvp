@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useExecution } from "@/contexts/ExecutionContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,7 +32,7 @@ interface TestCaseCardProps {
   projects: any[];
   onViewDetails: (testCase: TestCase) => void;
   onEdit: (testCase: TestCase) => void;
-  onRun: (testCase: TestCase) => void;
+  onRun: (testCase: TestCase) => Promise<any>;
   onDelete: (testCase: TestCase) => void;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
@@ -47,6 +48,12 @@ export default function TestCaseCard({
   openDropdownId,
   setOpenDropdownId,
 }: TestCaseCardProps) {
+  const { isExecuting, showExecuted, getSuiteExecutionId } = useExecution();
+  
+  // Obtener el executionId real para este test case, o usar el testCaseId como fallback
+  const testCaseKey = `${testCase.entityName}-${testCase.name}`;
+  const realExecutionId = getSuiteExecutionId(testCaseKey);
+  const executionId = realExecutionId || `testcase-${testCase.testCaseId}`;
   const getTestTypeColor = (testType: string) => {
     switch (testType) {
       case "positive":
@@ -117,6 +124,16 @@ export default function TestCaseCard({
         return "FAILED";
       default:
         return "UNKNOWN";
+    }
+  };
+
+  const handleRun = async () => {
+    if (isExecuting(executionId)) return;
+    
+    try {
+      await onRun(testCase);
+    } catch (error) {
+      console.error('Error running test case:', error);
     }
   };
 
@@ -208,17 +225,51 @@ export default function TestCaseCard({
                ))}
              </div>
            </div>
-         </div>
-         <div className="pt-3 border-t mt-auto">
-           <Button
-             className="w-full"
-             variant="outline"
-             size="sm"
-             onClick={() => onRun(testCase)}
-           >
-             <Play className="h-4 w-4 mr-2" />
-             Run Test
-           </Button>
+                 </div>
+        
+        <div className="h-6"></div>
+        <div className="pt-3 border-t mt-auto">
+           <div className="relative">
+             {isExecuting(executionId) && (
+               <div className="absolute inset-0 bg-green-100 rounded-md overflow-hidden">
+                 <div 
+                   className="h-full w-full"
+                   style={{
+                     background: `repeating-linear-gradient(
+                       45deg,
+                       transparent,
+                       transparent 10px,
+                       rgba(34, 197, 94, 0.3) 10px,
+                       rgba(34, 197, 94, 0.3) 20px
+                     )`,
+                     animation: 'moveStripes 3s linear infinite'
+                   }}
+                 />
+                 <style>{`
+                   @keyframes moveStripes {
+                     0% { transform: translateX(-100%); }
+                     100% { transform: translateX(100%); }
+                   }
+                 `}</style>
+               </div>
+             )}
+             <Button
+               className={`w-full relative z-10 ${
+                 isExecuting(executionId)
+                   ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
+                   : showExecuted(executionId)
+                   ? 'bg-green-100 text-green-800 border-green-300'
+                   : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
+               }`}
+               variant="outline"
+               size="sm"
+               onClick={handleRun}
+               disabled={isExecuting(executionId)}
+             >
+               <Play className="h-4 w-4 mr-2" />
+               {isExecuting(executionId) ? 'Executing...' : showExecuted(executionId) ? 'Executed' : 'Run Test'}
+             </Button>
+           </div>
          </div>
        </CardContent>
     </Card>

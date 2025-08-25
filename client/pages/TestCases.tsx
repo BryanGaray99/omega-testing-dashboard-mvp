@@ -1,4 +1,6 @@
 import { useTestCases } from "@/hooks/useTestCases";
+import { useExecutionEvents } from "@/hooks/useExecutionEvents";
+import { useExecution } from "@/contexts/ExecutionContext";
 import TestCaseCard from "@/components/test-cases/TestCaseCard";
 import TestCaseFilters from "@/components/test-cases/TestCaseFilters";
 import TestCaseCreateDialog from "@/components/test-cases/TestCaseCreateDialog";
@@ -7,8 +9,9 @@ import TestCaseDeleteDialog from "@/components/test-cases/TestCaseDeleteDialog";
 import TestCaseEmptyState from "@/components/test-cases/TestCaseEmptyState";
 import ScenarioEditor from "@/components/test-cases/ScenarioEditor";
 import { Button } from "@/components/ui/button";
+import { TestCase } from "@/components/types/testCase.types";
 import { RefreshCw, Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function TestCases() {
   const {
@@ -89,6 +92,75 @@ export default function TestCases() {
   } = useTestCases();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Obtener el projectId del primer proyecto disponible
+  const currentProjectId = projects.length > 0 ? projects[0].id : '';
+
+  // Contexto de ejecución
+  const { startExecution, completeExecution, failExecution, setSuiteExecutionId } = useExecution();
+
+  // Handlers para eventos SSE
+  const handleExecutionStarted = useCallback((event: any) => {
+    console.log('TestCases - Execution started:', event);
+    console.log('TestCases - Execution ID:', event.executionId);
+    startExecution(event.executionId);
+    
+    // Para test cases, necesitamos mapear el executionId a un identificador único
+    // Como no tenemos testCaseId en el evento, usaremos el entityName + scenarioName
+    if (event.entityName && event.message) {
+      // Extraer el nombre del escenario del mensaje
+      const scenarioMatch = event.message.match(/para (.+)$/);
+      if (scenarioMatch) {
+        const scenarioName = scenarioMatch[1];
+        const testCaseKey = `${event.entityName}-${scenarioName}`;
+        setSuiteExecutionId(testCaseKey, event.executionId);
+      }
+    }
+  }, [startExecution, setSuiteExecutionId]);
+
+  const handleExecutionCompleted = useCallback((event: any) => {
+    console.log('TestCases - Execution completed:', event);
+    console.log('TestCases - Execution ID:', event.executionId);
+    completeExecution(event.executionId);
+    // Recargar datos cuando termine una ejecución
+    reloadData();
+  }, [completeExecution, reloadData]);
+
+  const handleExecutionFailed = useCallback((event: any) => {
+    console.log('TestCases - Execution failed:', event);
+    console.log('TestCases - Execution ID:', event.executionId);
+    failExecution(event.executionId, event.message || 'Error desconocido');
+    // Recargar datos cuando falle una ejecución
+    reloadData();
+  }, [failExecution, reloadData]);
+
+  // Conectar a SSE
+  useExecutionEvents({
+    projectId: currentProjectId,
+    onExecutionStarted: handleExecutionStarted,
+    onExecutionCompleted: handleExecutionCompleted,
+    onExecutionFailed: handleExecutionFailed,
+    enabled: !!currentProjectId,
+  });
+
+  // Wrapper para handleRunTestCase que guarda el mapeo
+  const handleRunTestCaseWithMapping = useCallback(async (testCase: TestCase) => {
+    try {
+      const result = await handleRunTestCase(testCase);
+      
+      // Si el resultado tiene executionId, guardar el mapeo
+      if (result?.data?.executionId) {
+        const testCaseKey = `${testCase.entityName}-${testCase.name}`;
+        setSuiteExecutionId(testCaseKey, result.data.executionId);
+        console.log('TestCases - Mapped test case:', testCaseKey, 'to executionId:', result.data.executionId);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error running test case:', error);
+      throw error;
+    }
+  }, [handleRunTestCase, setSuiteExecutionId]);
 
   const handleRefreshData = async () => {
     setIsRefreshing(true);
@@ -177,7 +249,7 @@ export default function TestCases() {
                  projects={projects}
                  onViewDetails={handleViewDetails}
                  onEdit={handleEditTestCase}
-                 onRun={handleRunTestCase}
+                 onRun={handleRunTestCaseWithMapping}
                  onDelete={handleDeleteTestCase}
                  openDropdownId={openDropdownId}
                  setOpenDropdownId={setOpenDropdownId}
@@ -236,7 +308,6 @@ export default function TestCases() {
           projects={projects}
           onUpdate={handleComprehensiveUpdate}
           onDelete={handleComprehensiveDelete}
-          onRun={handleComprehensiveRun}
           onClose={handleComprehensiveDialogClose}
           onEditSteps={() => selectedTestCase && handleEditSteps(selectedTestCase)}
           reloadData={reloadData}

@@ -156,7 +156,7 @@ export default function EndpointCard({
           </div>
           <div className="pt-3 border-t">
             <Button 
-              className="w-full" 
+              className="w-full bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400" 
               variant="outline" 
               size="sm"
               onClick={() => onViewDetails(endpoint)}
