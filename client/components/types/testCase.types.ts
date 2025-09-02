@@ -1,4 +1,5 @@
 export interface TestCase {
+  id: string;
   testCaseId: string;
   testCaseIdName: string;
   name: string;

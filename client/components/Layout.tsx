@@ -21,6 +21,8 @@ import {
   FileText,
   RefreshCw,
   Layers,
+  Bug,
+  ClipboardList,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -37,11 +39,12 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Projects", href: "/projects", icon: FolderKanban },
-  { name: "Endpoints", href: "/endpoints", icon: TestTube },
-  { name: "Test Cases", href: "/test-cases", icon: BarChart3 },
+  { name: "Endpoints", href: "/endpoints", icon: BarChart3 },
+  { name: "Test Cases", href: "/test-cases", icon: TestTube },
   { name: "Test Suites", href: "/test-suites", icon: Layers },
-  { name: "Execution", href: "/execution", icon: PlayCircle },
-  { name: "Reports", href: "/reports", icon: BarChart3, hidden: true },
+  { name: "Bugs", href: "/bugs", icon: Bug },
+  { name: "Test Executions", href: "/test-executions", icon: PlayCircle },
+  { name: "Reports", href: "/reports", icon: ClipboardList, hidden: true },
   { name: "Logs", href: "/logs", icon: FileText, hidden: true },
   { name: "AI Assistant", href: "/ai-assistant", icon: Bot, hidden: true },
 ];

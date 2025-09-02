@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { TestCase } from '@/components/types/testCase.types';
 import ScenarioEditor from './ScenarioEditor';
+import { testExecutionService } from '@/services/testExecutionService';
 import { 
   Play, 
   Trash2, 
@@ -29,9 +30,16 @@ import {
   FileText,
   Tag,
   TestTube,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { updateTestCaseScenario } from '@/services/testCaseService';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface TestCaseComprehensiveDialogProps {
   isOpen: boolean;
@@ -50,6 +58,7 @@ interface TestCaseComprehensiveDialogProps {
   reloadData: () => Promise<void>;
   reloadDataAndUpdateTestCase: (testCaseId: string) => Promise<void>;
   onEditScenario: () => void;
+  onNavigateToExecution?: (executionId: string) => void;
 }
 
 export default function TestCaseComprehensiveDialog({
@@ -69,9 +78,19 @@ export default function TestCaseComprehensiveDialog({
   reloadData,
   reloadDataAndUpdateTestCase,
   onEditScenario,
+  onNavigateToExecution,
 }: TestCaseComprehensiveDialogProps) {
   const [activeTab, setActiveTab] = useState('basic');
   const [isEditingScenario, setIsEditingScenario] = useState(false);
+  const [lastExecution, setLastExecution] = useState<any>(null);
+  const [loadingLastExecution, setLoadingLastExecution] = useState(false);
+
+  // Cargar la última ejecución cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && selectedTestCase && selectedTestCase.projectId) {
+      loadLastExecution();
+    }
+  }, [isOpen, selectedTestCase]);
 
   // Handle opening dialog with specific tab and scenario editing
   useEffect(() => {
@@ -91,6 +110,24 @@ export default function TestCaseComprehensiveDialog({
       }
     }
   }, [isOpen, selectedTestCase]);
+
+  const loadLastExecution = async () => {
+    if (!selectedTestCase?.projectId || !selectedTestCase?.testCaseId) return;
+    
+    setLoadingLastExecution(true);
+    try {
+      const execution = await testExecutionService.getLastExecutionByTestCase(
+        selectedTestCase.projectId,
+        selectedTestCase.testCaseId
+      );
+      setLastExecution(execution);
+    } catch (error) {
+      console.log('No last execution found for this test case:', error);
+      setLastExecution(null);
+    } finally {
+      setLoadingLastExecution(false);
+    }
+  };
 
   if (!selectedTestCase) return null;
 
@@ -429,9 +466,30 @@ export default function TestCaseComprehensiveDialog({
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Last Run</label>
-                        <p className="text-sm">
-                          {testCase.lastRun ? formatDate(testCase.lastRun) : "Not executed yet"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {lastExecution && lastExecution.executionId && onNavigateToExecution ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => onNavigateToExecution(lastExecution.executionId)}
+                                    className="text-sm font-medium text-left hover:text-blue-600 hover:underline cursor-pointer transition-colors flex items-center gap-1"
+                                  >
+                                    {testCase.lastRun ? formatDate(testCase.lastRun) : "Not executed yet"}
+                                    <ExternalLink className="h-3 w-3 opacity-60" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Ver detalles de la ejecución</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <p className="text-sm">
+                              {testCase.lastRun ? formatDate(testCase.lastRun) : "Not executed yet"}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

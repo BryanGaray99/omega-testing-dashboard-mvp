@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { TestSuite } from '@/services/testSuiteService';
+import { testExecutionService } from '@/services/testExecutionService';
 import { 
   Play, 
   Trash2, 
@@ -36,6 +37,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { normalizeTimeToSeconds } from '@/lib/utils';
 
 interface TestSuiteDetailsDialogProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ interface TestSuiteDetailsDialogProps {
   onClose: () => void;
   onNavigateToTestCase?: (testCaseId: string) => void;
   onNavigateToTestSet?: (testSetId: string) => void;
+  onNavigateToExecution?: (executionId: string) => void;
 }
 
 export default function TestSuiteDetailsDialog({
@@ -55,8 +58,42 @@ export default function TestSuiteDetailsDialog({
   onClose,
   onNavigateToTestCase,
   onNavigateToTestSet,
+  onNavigateToExecution,
 }: TestSuiteDetailsDialogProps) {
   const [activeTab, setActiveTab] = useState('basic-info');
+  const [lastExecution, setLastExecution] = useState<any>(null);
+  const [loadingLastExecution, setLoadingLastExecution] = useState(false);
+
+  // Cargar la última ejecución cuando se abre el modal
+  useEffect(() => {
+    console.log('useEffect triggered - isOpen:', isOpen, 'selectedTestSuite:', selectedTestSuite);
+    if (isOpen && selectedTestSuite && selectedTestSuite.projectId) {
+      loadLastExecution();
+    }
+  }, [isOpen, selectedTestSuite]);
+
+  const loadLastExecution = async () => {
+    if (!selectedTestSuite?.projectId || !selectedTestSuite?.suiteId) return;
+    
+    console.log('Loading last execution for test suite:', selectedTestSuite.suiteId);
+    setLoadingLastExecution(true);
+    try {
+      const execution = await testExecutionService.getLastExecutionByTestSuite(
+        selectedTestSuite.projectId,
+        selectedTestSuite.suiteId
+      );
+      console.log('Last execution loaded:', execution);
+      console.log('Execution ID:', execution.executionId);
+      console.log('Full execution object:', JSON.stringify(execution, null, 2));
+      console.log('onNavigateToExecution function:', !!onNavigateToExecution);
+      setLastExecution(execution);
+    } catch (error) {
+      console.log('No last execution found for this test suite:', error);
+      setLastExecution(null);
+    } finally {
+      setLoadingLastExecution(false);
+    }
+  };
 
   if (!selectedTestSuite) return null;
 
@@ -323,14 +360,35 @@ export default function TestSuiteDetailsDialog({
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Last Executed</label>
-                    <p className="text-sm">
-                      {testSuite.lastExecutedAt ? formatDate(testSuite.lastExecutedAt) : "Not executed yet"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      {lastExecution && lastExecution.executionId && onNavigateToExecution ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => onNavigateToExecution(lastExecution.executionId)}
+                                className="text-sm font-medium text-left hover:text-blue-600 hover:underline cursor-pointer transition-colors flex items-center gap-1"
+                              >
+                                {testSuite.lastExecutedAt ? formatDate(testSuite.lastExecutedAt) : "Not executed yet"}
+                                <ExternalLink className="h-3 w-3 opacity-60" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Ver detalles de la ejecución</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <p className="text-sm">
+                          {testSuite.lastExecutedAt ? formatDate(testSuite.lastExecutedAt) : "Not executed yet"}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   {testSuite.executionTime && testSuite.executionTime > 0 && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Execution Time</label>
-                      <p className="text-sm">{testSuite.executionTime}ms</p>
+                      <p className="text-sm">{normalizeTimeToSeconds(testSuite.executionTime)}</p>
                     </div>
                   )}
                 </div>

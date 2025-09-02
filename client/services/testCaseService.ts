@@ -57,18 +57,29 @@ export async function deleteTestCase(testCaseId: string, projectId: string): Pro
 
 export async function runTestCase(testCaseId: string, projectId: string, entityName: string, scenarioName: string): Promise<{ data: any }> {
   const url = `${API_BASE}/projects/${projectId}/test-execution/execute`;
+  
+  const payload = {
+    entityName: entityName,
+    specificScenario: scenarioName,
+    testCaseId: testCaseId,
+  };
+  
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      entityName: entityName,
-      specificScenario: scenarioName,
-    }),
+    body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Error running test case");
-  return res.json();
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('Error response:', errorText);
+    throw new Error("Error running test case");
+  }
+  
+  const result = await res.json();
+  return result;
 }
 
 // Helper function to reload test cases data

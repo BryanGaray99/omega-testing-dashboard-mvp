@@ -347,18 +347,13 @@ export function useTestCases() {
     try {
       const result = await runTestCase(testCase.testCaseId, testCase.projectId, testCase.entityName, testCase.name);
       
-      // Guardar el mapeo entre testCaseId y executionId para las animaciones
-      if (result.data?.executionId) {
-        console.log('Test case execution started with ID:', result.data.executionId);
-        // El mapeo se manejará en el componente TestCases.tsx usando el contexto
-      }
-
       // Recargar la lista tras ejecutar para reflejar lastRun/lastRunStatus cuando terminen
       const { testCases: allTestCases } = await reloadTestCasesData();
       setTestCases(allTestCases);
       
       return result; // Devolver el resultado para que el componente pueda acceder al executionId
     } catch (error) {
+      console.error('Error in handleRunTestCase:', error);
       toast({
         title: "Error",
         description: "Failed to run test case",

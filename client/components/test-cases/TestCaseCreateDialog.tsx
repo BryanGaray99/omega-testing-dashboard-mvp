@@ -950,11 +950,15 @@ export default function TestCaseCreateDialog({
                   if (pendingGeneration) {
                     if (pendingGeneration.type === 'suggest') {
                       setIsSuggesting(true);
-                      await proceedSuggestion(pendingGeneration);
+                      // Extract only valid properties for suggestion
+                      const { entityName, section, requirements } = pendingGeneration;
+                      await proceedSuggestion({ entityName, section, requirements });
                       setIsSuggesting(false);
                     } else {
                       setIsGenerating(true);
-                      await proceedGeneration(pendingGeneration);
+                      // Extract only valid properties for generation
+                      const { entityName, section, operation, requirements } = pendingGeneration;
+                      await proceedGeneration({ entityName, section, operation, requirements });
                       setIsGenerating(false);
                     }
                   }

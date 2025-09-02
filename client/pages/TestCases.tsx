@@ -99,22 +99,30 @@ export default function TestCases() {
   // Contexto de ejecución
   const { startExecution, completeExecution, failExecution, setSuiteExecutionId } = useExecution();
 
+  // Navigation functions for hyperlinks
+  const handleNavigateToTestExecution = (executionId: string) => {
+    // Abrir en nueva pestaña con la URL específica del test execution y abrir automáticamente el diálogo
+    const executionUrl = `${window.location.origin}/test-executions?executionId=${executionId}&openDetails=true`;
+    window.open(executionUrl, '_blank');
+  };
+
   // Handlers para eventos SSE
   const handleExecutionStarted = useCallback((event: any) => {
     console.log('TestCases - Execution started:', event);
     console.log('TestCases - Execution ID:', event.executionId);
     startExecution(event.executionId);
     
-    // Para test cases, necesitamos mapear el executionId a un identificador único
-    // Como no tenemos testCaseId en el evento, usaremos el entityName + scenarioName
-    if (event.entityName && event.message) {
-      // Extraer el nombre del escenario del mensaje
-      const scenarioMatch = event.message.match(/para (.+)$/);
-      if (scenarioMatch) {
-        const scenarioName = scenarioMatch[1];
-        const testCaseKey = `${event.entityName}-${scenarioName}`;
-        setSuiteExecutionId(testCaseKey, event.executionId);
-      }
+    // Para test cases, usar el testCaseId del evento SSE si está disponible
+    if (event.testCaseId) {
+      const testCaseKey = `${event.entityName}-${event.testCaseId}`;
+      setSuiteExecutionId(testCaseKey, event.executionId);
+      console.log('TestCases - Mapped from SSE with testCaseId:', testCaseKey, '->', event.executionId);
+    } else if (event.entityName) {
+      // Fallback: usar entityName + timestamp como clave temporal
+      const timestamp = new Date(event.timestamp).getTime();
+      const testCaseKey = `${event.entityName}-${timestamp}`;
+      setSuiteExecutionId(testCaseKey, event.executionId);
+      console.log('TestCases - Mapped from SSE (fallback):', testCaseKey, '->', event.executionId);
     }
   }, [startExecution, setSuiteExecutionId]);
 
@@ -143,24 +151,16 @@ export default function TestCases() {
     enabled: !!currentProjectId,
   });
 
-  // Wrapper para handleRunTestCase que guarda el mapeo
+  // Wrapper para handleRunTestCase
   const handleRunTestCaseWithMapping = useCallback(async (testCase: TestCase) => {
     try {
       const result = await handleRunTestCase(testCase);
-      
-      // Si el resultado tiene executionId, guardar el mapeo
-      if (result?.data?.executionId) {
-        const testCaseKey = `${testCase.entityName}-${testCase.name}`;
-        setSuiteExecutionId(testCaseKey, result.data.executionId);
-        console.log('TestCases - Mapped test case:', testCaseKey, 'to executionId:', result.data.executionId);
-      }
-      
       return result;
     } catch (error) {
       console.error('Error running test case:', error);
       throw error;
     }
-  }, [handleRunTestCase, setSuiteExecutionId]);
+  }, [handleRunTestCase]);
 
   const handleRefreshData = async () => {
     setIsRefreshing(true);
@@ -313,6 +313,7 @@ export default function TestCases() {
           reloadData={reloadData}
           reloadDataAndUpdateTestCase={reloadDataAndUpdateTestCase}
           onEditScenario={handleEditScenario}
+          onNavigateToExecution={handleNavigateToTestExecution}
         />
       
               <TestCaseDeleteDialog

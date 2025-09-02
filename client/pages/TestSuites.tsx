@@ -25,6 +25,7 @@ export default function TestSuites() {
   const navigate = useNavigate();
   const { filteredProjects } = useProjects();
   const projects = filteredProjects || [];
+  const { setSuiteExecutionId } = useExecution();
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,8 +99,30 @@ export default function TestSuites() {
   const totalItems = testSuitesData?.total || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // Handle URL parameters for opening test suite details
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const testSuiteId = searchParams.get('testSuiteId');
+    const openDetails = searchParams.get('openDetails');
+
+    if (testSuiteId && openDetails === 'true') {
+      // Find the test suite by ID
+      const testSuite = testSuites.find(ts => ts.suiteId === testSuiteId);
+      if (testSuite) {
+        setSelectedTestSuite(testSuite);
+        setIsDetailsDialogOpen(true);
+        
+        // Clear URL parameters after opening the dialog
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('testSuiteId');
+        newUrl.searchParams.delete('openDetails');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, [testSuites]);
+
   // Contexto de ejecución
-  const { startExecution, completeExecution, failExecution, setSuiteExecutionId } = useExecution();
+  const { startExecution, completeExecution, failExecution } = useExecution();
 
   // Handlers para eventos SSE
   const handleExecutionStarted = useCallback((event: any) => {
@@ -109,11 +132,17 @@ export default function TestSuites() {
     
     startExecution(event.executionId);
     
-    // Si tenemos un testSuiteId, guardar el mapeo
-    if (event.testSuiteId) {
-      setSuiteExecutionId(event.testSuiteId, event.executionId);
+    // Si tenemos un testSuiteId, guardar el mapeo usando la clave entity-name
+    if (event.testSuiteId && event.entityName) {
+      // Buscar el test suite para obtener el nombre
+      const testSuite = testSuites.find(ts => ts.suiteId === event.testSuiteId);
+      if (testSuite) {
+        const testSuiteKey = `${testSuite.entity}-${testSuite.name}`;
+        setSuiteExecutionId(testSuiteKey, event.executionId);
+        console.log('TestSuites - Mapped from SSE:', testSuiteKey, '->', event.executionId);
+      }
     }
-  }, [startExecution, setSuiteExecutionId]);
+  }, [startExecution, setSuiteExecutionId, testSuites]);
 
   const handleExecutionCompleted = useCallback((event: any) => {
     console.log('TestSuites - Execution completed:', event);
@@ -209,6 +238,12 @@ export default function TestSuites() {
   const executeMutation = useMutation({
     mutationFn: () => testSuiteService.executeTestSuite(currentProjectId, selectedTestSuite!.suiteId),
     onSuccess: (data) => {
+      // Mapear el executionId del test plan para las animaciones
+      if (data?.data?.executionId && selectedTestSuite) {
+        const testSuiteKey = `${selectedTestSuite.entity}-${selectedTestSuite.name}`;
+        setSuiteExecutionId(testSuiteKey, data.data.executionId);
+        console.log('TestSuites - Mapped test plan execution:', testSuiteKey, '->', data.data.executionId);
+      }
       // No mostrar toast de inicio, solo recargar datos
       refetch();
     },
@@ -354,6 +389,12 @@ export default function TestSuites() {
     window.open(testSetUrl, '_blank');
   };
 
+  const handleNavigateToTestExecution = (executionId: string) => {
+    // Abrir en nueva pestaña con la URL específica del test execution y abrir automáticamente el diálogo
+    const executionUrl = `${window.location.origin}/test-executions?executionId=${executionId}&openDetails=true`;
+    window.open(executionUrl, '_blank');
+  };
+
   if (error) {
     return (
       <div className="p-6">
@@ -459,17 +500,18 @@ export default function TestSuites() {
                      {/* Test Suites Grid */}
            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-all duration-500 ${isRefreshing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
                          {testSuites.map((testSuite) => (
-               <TestSuiteCard
-                 key={testSuite.suiteId}
-                 testSuite={testSuite}
-                 projects={projects}
-                 onViewDetails={handleViewDetails}
-                 onEdit={handleEdit}
-                 onRun={handleRun}
-                 onDelete={handleDelete}
-                 openDropdownId={openDropdownId}
-                 setOpenDropdownId={setOpenDropdownId}
-               />
+                               <TestSuiteCard
+                  key={testSuite.suiteId}
+                  testSuite={testSuite}
+                  projects={projects}
+                  onViewDetails={handleViewDetails}
+                  onEdit={handleEdit}
+                  onRun={handleRun}
+                  onDelete={handleDelete}
+                  onNavigateToTestExecution={handleNavigateToTestExecution}
+                  openDropdownId={openDropdownId}
+                  setOpenDropdownId={setOpenDropdownId}
+                />
              ))}
           </div>
 
@@ -526,6 +568,7 @@ export default function TestSuites() {
          onClose={() => setIsDetailsDialogOpen(false)}
          onNavigateToTestCase={handleNavigateToTestCase}
          onNavigateToTestSet={handleNavigateToTestSet}
+         onNavigateToExecution={handleNavigateToTestExecution}
        />
 
              <TestSuiteEditDialog

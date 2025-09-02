@@ -4,68 +4,86 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Bot,
   CheckCircle,
   XCircle,
   Zap,
-  AlertTriangle,
   Eye,
   EyeOff,
-  TestTube,
   Save,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function OpenAISettings() {
-  const [isConnected, setIsConnected] = useState(true);
-  const [apiKey, setApiKey] = useState("sk-...your-api-key...xyz");
+  const [isConnected, setIsConnected] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
-  const [model, setModel] = useState("gpt-4");
-  const [temperature, setTemperature] = useState("0.7");
-  const [maxTokens, setMaxTokens] = useState("2000");
-  const [aiEnabled, setAiEnabled] = useState(true);
-  const [autoGenerate, setAutoGenerate] = useState(true);
-  const [customPrompts, setCustomPrompts] = useState({
-    testGeneration:
-      "Generate comprehensive test cases for the following API endpoint. Include positive, negative, and edge case scenarios.",
-    codeReview:
-      "Review the following test code and suggest improvements for better coverage and maintainability.",
-  });
   const [isLoading, setIsLoading] = useState(false);
-
-  const [usage] = useState({
-    thisMonth: {
-      requests: 1247,
-      tokens: 156780,
-      cost: 12.45,
-    },
-    lastMonth: {
-      requests: 980,
-      tokens: 124560,
-      cost: 9.87,
-    },
-  });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleTestConnection = async () => {
+    if (!apiKey.trim()) {
+      toast.error("Por favor ingresa una API key primero");
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsConnected(true);
-    setIsLoading(false);
+    try {
+      const response = await fetch('/v1/api/ai/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setIsConnected(true);
+        toast.success("Conexión exitosa con OpenAI");
+      } else {
+        const error = await response.json();
+        setIsConnected(false);
+        toast.error(error.message || "Error al conectar con OpenAI");
+      }
+    } catch (error) {
+      setIsConnected(false);
+      toast.error("Error de conexión");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveSettings = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+  const handleSaveApiKey = async () => {
+    if (!apiKey.trim()) {
+      toast.error("Por favor ingresa una API key");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/v1/api/ai/save-api-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
+      });
+
+      if (response.ok) {
+        toast.success("API key guardada exitosamente");
+        // Probar la conexión después de guardar
+        await handleTestConnection();
+      } else {
+        const error = await response.json();
+        toast.error(error.message || "Error al guardar la API key");
+      }
+    } catch (error) {
+      toast.error("Error al guardar la API key");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -94,7 +112,7 @@ export default function OpenAISettings() {
               <div className="flex items-center space-x-3">
                 {isConnected ? (
                   <>
-                    <CheckCircle className="h-5 w-5 text-success" />
+                    <CheckCircle className="h-5 w-5 text-green-600" />
                     <div>
                       <p className="font-medium">Connected to OpenAI</p>
                       <p className="text-sm text-muted-foreground">
@@ -104,11 +122,11 @@ export default function OpenAISettings() {
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-5 w-5 text-error" />
+                    <XCircle className="h-5 w-5 text-red-600" />
                     <div>
-                      <p className="font-medium">Connection failed</p>
+                      <p className="font-medium">Not connected</p>
                       <p className="text-sm text-muted-foreground">
-                        Please check your API key and try again
+                        Please configure your API key and test the connection
                       </p>
                     </div>
                   </>
@@ -117,7 +135,7 @@ export default function OpenAISettings() {
               <Button
                 variant="outline"
                 onClick={handleTestConnection}
-                disabled={isLoading}
+                disabled={isLoading || !apiKey.trim()}
               >
                 <Zap className="h-4 w-4 mr-2" />
                 {isLoading ? "Testing..." : "Test Connection"}
@@ -167,196 +185,18 @@ export default function OpenAISettings() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Model</Label>
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gpt-4">GPT-4 (Recommended)</SelectItem>
-                    <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                    <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Temperature</Label>
-                <Input
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  placeholder="0.7"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Max Tokens</Label>
-                <Input
-                  value={maxTokens}
-                  onChange={(e) => setMaxTokens(e.target.value)}
-                  placeholder="2000"
-                />
-              </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSaveApiKey}
+                disabled={isSaving || !apiKey.trim()}
+                className="flex items-center space-x-2"
+              >
+                <Save className="h-4 w-4" />
+                {isSaving ? "Saving..." : "Save API Key"}
+              </Button>
             </div>
           </CardContent>
         </Card>
-
-        {/* AI Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Features</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Enable AI Features</Label>
-                <p className="text-sm text-muted-foreground">
-                  Allow AI-powered test generation and suggestions
-                </p>
-              </div>
-              <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Auto-generate test cases</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically suggest test cases for new endpoints
-                </p>
-              </div>
-              <Switch
-                checked={autoGenerate}
-                onCheckedChange={setAutoGenerate}
-                disabled={!aiEnabled}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Custom Prompts */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Prompts</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="testGeneration">Test Generation Prompt</Label>
-              <Textarea
-                id="testGeneration"
-                value={customPrompts.testGeneration}
-                onChange={(e) =>
-                  setCustomPrompts({
-                    ...customPrompts,
-                    testGeneration: e.target.value,
-                  })
-                }
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="codeReview">Code Review Prompt</Label>
-              <Textarea
-                id="codeReview"
-                value={customPrompts.codeReview}
-                onChange={(e) =>
-                  setCustomPrompts({
-                    ...customPrompts,
-                    codeReview: e.target.value,
-                  })
-                }
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Usage Statistics */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Usage Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h4 className="font-medium">This Month</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Requests:
-                    </span>
-                    <span className="font-medium">
-                      {usage.thisMonth.requests.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Tokens:
-                    </span>
-                    <span className="font-medium">
-                      {usage.thisMonth.tokens.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Cost:</span>
-                    <span className="font-medium">
-                      ${usage.thisMonth.cost.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-medium">Last Month</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Requests:
-                    </span>
-                    <span className="font-medium">
-                      {usage.lastMonth.requests.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Tokens:
-                    </span>
-                    <span className="font-medium">
-                      {usage.lastMonth.tokens.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Cost:</span>
-                    <span className="font-medium">
-                      ${usage.lastMonth.cost.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Warning */}
-        <Card className="border-warning">
-          <CardContent className="pt-6">
-            <div className="flex space-x-3">
-              <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Important Security Notice</p>
-                <p className="text-xs text-muted-foreground">
-                  Your API key is encrypted and stored securely. Never share
-                  your API key with others or commit it to version control.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSaveSettings} disabled={isLoading}>
-            <Save className="h-4 w-4 mr-2" />
-            {isLoading ? "Saving..." : "Save Configuration"}
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { normalizeTimeToSeconds } from '@/lib/utils';
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3,
@@ -149,7 +150,7 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">{loading ? "-" : `${(averageExecutionTime / 1000).toFixed(1)}s`}</div>
+                            <div className="text-2xl font-bold text-warning">{loading ? "-" : normalizeTimeToSeconds(averageExecutionTime)}</div>
           </CardContent>
         </Card>
       </div>

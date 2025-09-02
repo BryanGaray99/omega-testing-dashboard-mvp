@@ -17,7 +17,8 @@ import Projects from "./pages/Projects";
 import Endpoints from "./pages/Endpoints";
 import TestCases from "./pages/TestCases";
 import TestSuites from "./pages/TestSuites";
-import Execution from "./pages/Execution";
+import Bugs from "./pages/Bugs";
+import TestExecutions from "./pages/TestExecutions";
 import Reports from "./pages/Reports";
 import Logs from "./pages/Logs";
 import AIAssistant from "./pages/AIAssistant";
@@ -88,10 +89,18 @@ const App = () => (
               }
             />
             <Route
-              path="/execution"
+              path="/bugs"
               element={
                 <Layout>
-                  <Execution />
+                  <Bugs />
+                </Layout>
+              }
+            />
+            <Route
+              path="/test-executions"
+              element={
+                <Layout>
+                  <TestExecutions />
                 </Layout>
               }
             />

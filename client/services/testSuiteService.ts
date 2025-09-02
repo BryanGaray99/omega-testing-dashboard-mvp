@@ -299,6 +299,7 @@ class TestSuiteService {
 
   // Helper method to get available test cases for a project
   async getAvailableTestCases(projectId: string): Promise<Array<{
+    id: string;
     testCaseId: string;
     name: string;
     entityName: string;
@@ -318,6 +319,7 @@ class TestSuiteService {
     const testCases = data.data?.testCases || data.testCases || [];
     
     return testCases.map((tc: any) => ({
+      id: tc.id,
       testCaseId: tc.testCaseId,
       name: tc.name,
       entityName: tc.entityName,

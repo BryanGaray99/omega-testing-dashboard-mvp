@@ -24,6 +24,7 @@ import {
   Clock,
   FileText,
   Calendar,
+  ExternalLink,
 } from "lucide-react";
 import { TestCase } from "@/components/types/testCase.types";
 
@@ -51,9 +52,12 @@ export default function TestCaseCard({
   const { isExecuting, showExecuted, getSuiteExecutionId } = useExecution();
   
   // Obtener el executionId real para este test case, o usar el testCaseId como fallback
-  const testCaseKey = `${testCase.entityName}-${testCase.name}`;
+  // Usar la clave específica con testCaseId para mapeo preciso
+  const testCaseKey = `${testCase.entityName}-${testCase.testCaseId}`;
   const realExecutionId = getSuiteExecutionId(testCaseKey);
   const executionId = realExecutionId || `testcase-${testCase.testCaseId}`;
+  
+
   const getTestTypeColor = (testType: string) => {
     switch (testType) {
       case "positive":
@@ -134,6 +138,13 @@ export default function TestCaseCard({
       await onRun(testCase);
     } catch (error) {
       console.error('Error running test case:', error);
+    }
+  };
+
+  const handleNavigateToExecution = () => {
+    if (realExecutionId) {
+      const executionUrl = `${window.location.origin}/test-executions?executionId=${realExecutionId}&openDetails=true`;
+      window.open(executionUrl, '_blank');
     }
   };
 
@@ -231,7 +242,7 @@ export default function TestCaseCard({
         <div className="pt-3 border-t mt-auto">
            <div className="relative">
              {isExecuting(executionId) && (
-               <div className="absolute inset-0 bg-green-100 rounded-md overflow-hidden">
+               <div className="absolute inset-0 bg-green-100 rounded-md overflow-hidden pointer-events-none">
                  <div 
                    className="h-full w-full"
                    style={{
@@ -253,22 +264,32 @@ export default function TestCaseCard({
                  `}</style>
                </div>
              )}
-             <Button
-               className={`w-full relative z-10 ${
-                 isExecuting(executionId)
-                   ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
-                   : showExecuted(executionId)
-                   ? 'bg-green-100 text-green-800 border-green-300'
-                   : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
-               }`}
-               variant="outline"
-               size="sm"
-               onClick={handleRun}
-               disabled={isExecuting(executionId)}
-             >
-               <Play className="h-4 w-4 mr-2" />
-               {isExecuting(executionId) ? 'Executing...' : showExecuted(executionId) ? 'Executed' : 'Run Test'}
-             </Button>
+             {showExecuted(executionId) && realExecutionId ? (
+               <Button
+                 className="w-full relative z-10 bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 hover:border-blue-400"
+                 variant="outline"
+                 size="sm"
+                 onClick={handleNavigateToExecution}
+               >
+                 <ExternalLink className="h-4 w-4 mr-2" />
+                 View Execution
+               </Button>
+             ) : (
+               <Button
+                 className={`w-full relative z-10 ${
+                   isExecuting(executionId)
+                     ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
+                     : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
+                 }`}
+                 variant="outline"
+                 size="sm"
+                 onClick={handleRun}
+                 disabled={isExecuting(executionId)}
+               >
+                 <Play className="h-4 w-4 mr-2" />
+                 {isExecuting(executionId) ? 'Executing...' : 'Run Test'}
+               </Button>
+             )}
            </div>
          </div>
        </CardContent>

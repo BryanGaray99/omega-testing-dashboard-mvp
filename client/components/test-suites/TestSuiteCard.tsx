@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
+  ExternalLink,
 } from "lucide-react";
 import { TestSuite } from "@/services/testSuiteService";
 
@@ -32,6 +33,7 @@ interface TestSuiteCardProps {
   onEdit: (testSuite: TestSuite) => void;
   onRun: (testSuite: TestSuite) => Promise<any>;
   onDelete: (testSuite: TestSuite) => void;
+  onNavigateToTestExecution?: (executionId: string) => void;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
 }
@@ -43,13 +45,16 @@ export default function TestSuiteCard({
   onEdit,
   onRun,
   onDelete,
+  onNavigateToTestExecution,
   openDropdownId,
   setOpenDropdownId,
 }: TestSuiteCardProps) {
   const { isExecuting, showExecuted, getSuiteExecutionId } = useExecution();
   
   // Obtener el executionId real para este test suite, o usar el suiteId como fallback
-  const realExecutionId = getSuiteExecutionId(testSuite.suiteId);
+  // Usar la misma clave que en executeMutation: entity-name
+  const testSuiteKey = `${testSuite.entity}-${testSuite.name}`;
+  const realExecutionId = getSuiteExecutionId(testSuiteKey);
   const executionId = realExecutionId || `testsuite-${testSuite.suiteId}`;
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -101,6 +106,12 @@ export default function TestSuiteCard({
       await onRun(testSuite);
     } catch (error) {
       console.error('Error executing test suite:', error);
+    }
+  };
+
+  const handleNavigateToExecution = () => {
+    if (realExecutionId && onNavigateToTestExecution) {
+      onNavigateToTestExecution(realExecutionId);
     }
   };
 
@@ -243,22 +254,32 @@ export default function TestSuiteCard({
                 `}</style>
               </div>
             )}
-            <Button
-              className={`w-full relative z-10 ${
-                isExecuting(executionId)
-                  ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
-                  : showExecuted(executionId)
-                  ? 'bg-green-100 text-green-800 border-green-300'
-                  : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
-              }`}
-              variant="outline"
-              size="sm"
-              onClick={handleExecute}
-              disabled={isExecuting(executionId)}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {isExecuting(executionId) ? 'Executing...' : showExecuted(executionId) ? 'Executed' : 'Execute Test Suite'}
-            </Button>
+            {showExecuted(executionId) && realExecutionId ? (
+              <Button
+                className="w-full relative z-10 bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 hover:border-blue-400"
+                variant="outline"
+                size="sm"
+                onClick={handleNavigateToExecution}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Execution
+              </Button>
+            ) : (
+              <Button
+                className={`w-full relative z-10 ${
+                  isExecuting(executionId)
+                    ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
+                    : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300 hover:border-green-400'
+                }`}
+                variant="outline"
+                size="sm"
+                onClick={handleExecute}
+                disabled={isExecuting(executionId)}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {isExecuting(executionId) ? 'Executing...' : 'Execute Test Suite'}
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

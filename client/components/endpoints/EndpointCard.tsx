@@ -17,6 +17,7 @@ import {
   TestTube,
   XCircle,
   Zap,
+  BarChart3,
 } from "lucide-react";
 import { Endpoint } from "../types/endpoint.types";
 
@@ -110,7 +111,7 @@ export default function EndpointCard({
                 View & Edit
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onGenerateTests(endpoint)}>
-                <TestTube className="mr-2 h-4 w-4" />
+                <BarChart3 className="mr-2 h-4 w-4" />
                 Generate Tests
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onReanalyze(endpoint)}>
