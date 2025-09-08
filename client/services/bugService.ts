@@ -247,47 +247,4 @@ export const bugService = {
     return response.json();
   },
 
-  // Get bug types
-  async getBugTypes(): Promise<{ [key: string]: string }> {
-    const response = await fetch(`${API_BASE}/projects/1/bugs/types`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bug types: ${response.statusText}`);
-    }
-
-    return response.json();
-  },
-
-  // Get bug severities
-  async getBugSeverities(): Promise<{ [key: string]: string }> {
-    const response = await fetch(`${API_BASE}/projects/1/bugs/severities`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bug severities: ${response.statusText}`);
-    }
-
-    return response.json();
-  },
-
-  // Get bug priorities
-  async getBugPriorities(): Promise<{ [key: string]: string }> {
-    const response = await fetch(`${API_BASE}/projects/1/bugs/priorities`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bug priorities: ${response.statusText}`);
-    }
-
-    return response.json();
-  },
-
-  // Get bug statuses
-  async getBugStatuses(): Promise<{ [key: string]: string }> {
-    const response = await fetch(`${API_BASE}/projects/1/bugs/statuses`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bug statuses: ${response.statusText}`);
-    }
-
-    return response.json();
-  },
 };

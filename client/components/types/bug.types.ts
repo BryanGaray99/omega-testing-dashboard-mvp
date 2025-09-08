@@ -110,6 +110,7 @@ export interface UpdateBugDto {
 
 export interface BugFilters {
   search?: string;
+  projectId?: string;
   type?: BugType;
   severity?: BugSeverity;
   priority?: BugPriority;

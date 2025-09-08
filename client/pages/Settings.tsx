@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import {
   Save,
   Settings as SettingsIcon,
   ArrowLeft,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,10 +25,58 @@ export default function Settings() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'disconnected' | 'error'>('checking');
 
   const handleBack = () => {
     navigate(-1);
   };
+
+  // Verificar automáticamente el estado de OpenAI al cargar el componente
+  const checkOpenAIStatus = async () => {
+    setIsInitialLoading(true);
+    setConnectionStatus('checking');
+    
+    try {
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1/api';
+      const response = await fetch(`${API_BASE}/ai/check-status`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('🔍 OpenAI Status Response:', result); // Debug temporal
+        const data = result.data || result; // Manejar tanto la respuesta envuelta como directa
+        console.log('🔍 Processed Data:', data); // Debug temporal
+        
+        if (data.success && data.connected) {
+          setIsConnected(true);
+          setConnectionStatus('connected');
+          // Si hay una API key configurada, mostrarla (parcialmente oculta)
+          if (data.configured) {
+            setApiKey('sk-***' + '***'.repeat(10)); // Mostrar formato parcial
+          }
+        } else {
+          setIsConnected(false);
+          setConnectionStatus('disconnected');
+          if (data.configured && !data.connected) {
+            setConnectionStatus('error');
+          }
+        }
+      } else {
+        setIsConnected(false);
+        setConnectionStatus('disconnected');
+      }
+    } catch (error) {
+      setIsConnected(false);
+      setConnectionStatus('error');
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
+
+  // Verificar estado al montar el componente
+  useEffect(() => {
+    checkOpenAIStatus();
+  }, []);
 
   const handleTestConnection = async () => {
     if (!apiKey.trim()) {
@@ -48,12 +97,14 @@ export default function Settings() {
 
       if (response.ok) {
         const result = await response.json();
+        const data = result.data || result; // Manejar tanto la respuesta envuelta como directa
         setIsConnected(true);
         toast.success("Conexión exitosa con OpenAI");
       } else {
         const error = await response.json();
+        const errorData = error.data || error; // Manejar tanto la respuesta envuelta como directa
         setIsConnected(false);
-        toast.error(error.message || "Error al conectar con OpenAI");
+        toast.error(errorData.message || error.message || "Error al conectar con OpenAI");
       }
     } catch (error) {
       setIsConnected(false);
@@ -82,11 +133,12 @@ export default function Settings() {
 
       if (response.ok) {
         toast.success("API key guardada exitosamente");
-        // Probar la conexión después de guardar
-        await handleTestConnection();
+        // Verificar el estado después de guardar
+        await checkOpenAIStatus();
       } else {
         const error = await response.json();
-        toast.error(error.message || "Error al guardar la API key");
+        const errorData = error.data || error; // Manejar tanto la respuesta envuelta como directa
+        toast.error(errorData.message || error.message || "Error al guardar la API key");
       }
     } catch (error) {
       toast.error("Error al guardar la API key");
@@ -158,13 +210,33 @@ export default function Settings() {
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        {isConnected ? (
+                        {isInitialLoading ? (
+                          <>
+                            <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                            <div>
+                              <p className="font-medium">Verificando conexión...</p>
+                              <p className="text-sm text-muted-foreground">
+                                Revisando archivo .env y probando conexión
+                              </p>
+                            </div>
+                          </>
+                        ) : isConnected ? (
                           <>
                             <CheckCircle className="h-5 w-5 text-green-600" />
                             <div>
                               <p className="font-medium">Connected to OpenAI</p>
                               <p className="text-sm text-muted-foreground">
                                 API key is valid and working
+                              </p>
+                            </div>
+                          </>
+                        ) : connectionStatus === 'error' ? (
+                          <>
+                            <XCircle className="h-5 w-5 text-orange-600" />
+                            <div>
+                              <p className="font-medium">API key configurada pero con error</p>
+                              <p className="text-sm text-muted-foreground">
+                                La API key existe pero hay un problema de conexión
                               </p>
                             </div>
                           </>
@@ -180,14 +252,24 @@ export default function Settings() {
                           </>
                         )}
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={handleTestConnection}
-                        disabled={isLoading || !apiKey.trim()}
-                      >
-                        <Zap className="h-4 w-4 mr-2" />
-                        {isLoading ? "Testing..." : "Test Connection"}
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={checkOpenAIStatus}
+                          disabled={isInitialLoading}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          {isInitialLoading ? "Checking..." : "Refresh Status"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleTestConnection}
+                          disabled={isLoading || !apiKey.trim()}
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          {isLoading ? "Testing..." : "Test Connection"}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -206,12 +288,14 @@ export default function Settings() {
                           type={showApiKey ? "text" : "password"}
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
-                          placeholder="sk-..."
+                          placeholder={isConnected ? "API key configurada y funcionando" : "sk-..."}
+                          disabled={isConnected && apiKey.startsWith('sk-***')}
                         />
                         <Button
                           variant="outline"
                           size="icon"
                           onClick={() => setShowApiKey(!showApiKey)}
+                          disabled={isConnected && apiKey.startsWith('sk-***')}
                         >
                           {showApiKey ? (
                             <EyeOff className="h-4 w-4" />
@@ -219,6 +303,20 @@ export default function Settings() {
                             <Eye className="h-4 w-4" />
                           )}
                         </Button>
+                        {isConnected && apiKey.startsWith('sk-***') && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setApiKey('');
+                              setIsConnected(false);
+                              setConnectionStatus('disconnected');
+                            }}
+                            title="Limpiar API key"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Get your API key from{" "}
@@ -236,11 +334,11 @@ export default function Settings() {
                     <div className="flex justify-end">
                       <Button
                         onClick={handleSaveApiKey}
-                        disabled={isSaving || !apiKey.trim()}
+                        disabled={isSaving || !apiKey.trim() || (isConnected && apiKey.startsWith('sk-***'))}
                         className="flex items-center space-x-2"
                       >
                         <Save className="h-4 w-4" />
-                        {isSaving ? "Saving..." : "Save API Key"}
+                        {isSaving ? "Saving..." : (isConnected && apiKey.startsWith('sk-***') ? "API Key Already Saved" : "Save API Key")}
                       </Button>
                     </div>
                   </CardContent>

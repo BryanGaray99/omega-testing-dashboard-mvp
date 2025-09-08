@@ -53,7 +53,7 @@ export function useTestCases() {
   });
 
   // Sorting & Pagination
-  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastRun' | 'name'>('name');
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'lastRun' | 'name'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;

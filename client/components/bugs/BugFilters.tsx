@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal, AlertTriangle, Clock, CheckCircle, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BugFilters as BugFiltersType, BugType, BugSeverity, BugPriority, BugStatus, FailedExecution } from "@/components/types/bug.types";
+import { getProjectSectionsAndEntities, getProjectEntities } from "@/services/testCaseService";
 
 interface ProjectOption {
   id: string;
@@ -33,13 +34,75 @@ export function BugFilters({
   loadingFailedExecutions,
 }: BugFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sections, setSections] = useState<string[]>([]);
+  const [entities, setEntities] = useState<string[]>([]);
+  const [loadingSections, setLoadingSections] = useState(false);
+  const [loadingEntities, setLoadingEntities] = useState(false);
+
+  // Load sections when project changes
+  useEffect(() => {
+    const loadSections = async () => {
+      if (!filters.projectId) {
+        setSections([]);
+        setEntities([]);
+        return;
+      }
+
+      setLoadingSections(true);
+      try {
+        const { sections: projectSections } = await getProjectSectionsAndEntities(filters.projectId);
+        setSections(projectSections);
+        setEntities([]); // Reset entities when project changes
+      } catch (error) {
+        console.error('Error loading sections:', error);
+        setSections([]);
+      } finally {
+        setLoadingSections(false);
+      }
+    };
+
+    loadSections();
+  }, [filters.projectId]);
+
+  // Load entities when section changes
+  useEffect(() => {
+    const loadEntities = async () => {
+      if (!filters.projectId || !filters.section) {
+        setEntities([]);
+        return;
+      }
+
+      setLoadingEntities(true);
+      try {
+        const projectEntities = await getProjectEntities(filters.projectId, filters.section);
+        setEntities(projectEntities);
+      } catch (error) {
+        console.error('Error loading entities:', error);
+        setEntities([]);
+      } finally {
+        setLoadingEntities(false);
+      }
+    };
+
+    loadEntities();
+  }, [filters.projectId, filters.section]);
 
   const handleFilterChange = (key: keyof BugFiltersType, value: any) => {
     const newFilters = { ...filters, [key]: value };
+    
+    // Reset dependent filters
+    if (key === 'projectId') {
+      newFilters.section = undefined;
+      newFilters.entity = undefined;
+    } else if (key === 'section') {
+      newFilters.entity = undefined;
+    }
+    
     // Reset page when changing filters
     if (key !== 'page' && key !== 'limit') {
       newFilters.page = 1;
     }
+    
     onFiltersChange(newFilters);
   };
 
@@ -73,6 +136,62 @@ export function BugFilters({
 
       {showAdvanced && (
         <div className="flex gap-2 flex-wrap items-center">
+          {/* Project Filter */}
+          <Select 
+            value={filters.projectId || 'all'} 
+            onValueChange={(value) => handleFilterChange('projectId', value === 'all' ? undefined : value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.displayName || project.name || project.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Section Filter */}
+          <Select 
+            value={filters.section || 'all'} 
+            onValueChange={(value) => handleFilterChange('section', value === 'all' ? undefined : value)}
+            disabled={!filters.projectId || loadingSections}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={loadingSections ? "Loading..." : "All Sections"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sections</SelectItem>
+              {sections.map((section) => (
+                <SelectItem key={section} value={section}>
+                  {section.charAt(0).toUpperCase() + section.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Entity Filter */}
+          <Select 
+            value={filters.entity || 'all'} 
+            onValueChange={(value) => handleFilterChange('entity', value === 'all' ? undefined : value)}
+            disabled={!filters.section || loadingEntities}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={loadingEntities ? "Loading..." : "All Entities"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Entities</SelectItem>
+              {entities.map((entity) => (
+                <SelectItem key={entity} value={entity}>
+                  {entity}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {/* Type Filter */}
           <Select 
             value={filters.type || 'all'} 
@@ -161,58 +280,7 @@ export function BugFilters({
             </SelectContent>
           </Select>
 
-          {/* Section Filter */}
-          <Select 
-            value={filters.section || 'all'} 
-            onValueChange={(value) => handleFilterChange('section', value === 'all' ? undefined : value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Sections" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sections</SelectItem>
-              <SelectItem value="ecommerce">E-commerce</SelectItem>
-              <SelectItem value="auth">Authentication</SelectItem>
-              <SelectItem value="user">User Management</SelectItem>
-              <SelectItem value="payment">Payment</SelectItem>
-            </SelectContent>
-          </Select>
 
-          {/* Entity Filter */}
-          <Select 
-            value={filters.entity || 'all'} 
-            onValueChange={(value) => handleFilterChange('entity', value === 'all' ? undefined : value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Entities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Entities</SelectItem>
-              <SelectItem value="Product">Product</SelectItem>
-              <SelectItem value="User">User</SelectItem>
-              <SelectItem value="Order">Order</SelectItem>
-              <SelectItem value="Payment">Payment</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Failed Execution Filter */}
-          <Select 
-            value={filters.executionId || 'all'} 
-            onValueChange={(value) => handleFilterChange('executionId', value === 'all' ? undefined : value)}
-            disabled={loadingFailedExecutions}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="All Executions" />
-            </SelectTrigger>
-                         <SelectContent>
-               <SelectItem value="all">All Executions</SelectItem>
-               {Array.isArray(failedExecutions) && failedExecutions.map((execution) => (
-                 <SelectItem key={execution.executionId} value={execution.executionId}>
-                   {execution.testCaseName} - {execution.entityName}
-                 </SelectItem>
-               ))}
-             </SelectContent>
-          </Select>
 
           {/* Sort By */}
           <Select 

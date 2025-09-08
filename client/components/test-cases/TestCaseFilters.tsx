@@ -141,7 +141,7 @@ export default function TestCaseFilters({
           {/* Execution Status */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
@@ -153,11 +153,11 @@ export default function TestCaseFilters({
 
           {/* Sort by */}
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Sort by" />
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Created At" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="updatedAt">Updated At</SelectItem>
+              <SelectItem value="updatedAt">Update At</SelectItem>
               <SelectItem value="createdAt">Created At</SelectItem>
               <SelectItem value="lastRun">Last Run</SelectItem>
             </SelectContent>
