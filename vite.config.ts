@@ -7,7 +7,14 @@ import { createServer } from "./server";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "localhost",
-    port: 8080,
+    port: 5173,
+    open: true,
+    proxy: {
+      "/v1/api": {
+        target: process.env.API_PROXY_TARGET || "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: "dist/spa",

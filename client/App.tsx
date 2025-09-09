@@ -7,14 +7,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ExecutionProvider } from "./contexts/ExecutionContext";
 import Layout from "./components/Layout";
 import SettingsLayout from "./components/SettingsLayout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
-import ProjectEditor from "./pages/ProjectEditor";
+// Temporarily hidden - ProjectEditor import
+// import ProjectEditor from "./pages/ProjectEditor";
 import Endpoints from "./pages/Endpoints";
 import TestCases from "./pages/TestCases";
-import Execution from "./pages/Execution";
+import TestSuites from "./pages/TestSuites";
+import Bugs from "./pages/Bugs";
+import TestExecutions from "./pages/TestExecutions";
 import Reports from "./pages/Reports";
 import Logs from "./pages/Logs";
 import AIAssistant from "./pages/AIAssistant";
@@ -29,13 +33,16 @@ import AppearanceSettings from "./pages/settings/Appearance";
 import ExportSettings from "./pages/settings/Export";
 import DangerZoneSettings from "./pages/settings/DangerZone";
 import NotFound from "./pages/NotFound";
+import BackendLoaderOverlay from "./components/BackendLoaderOverlay";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <ExecutionProvider>
+        <TooltipProvider>
+        <BackendLoaderOverlay />
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -56,7 +63,9 @@ const App = () => (
                 </Layout>
               }
             />
+            {/* Temporarily hidden - ProjectEditor route
             <Route path="/projects/:id" element={<ProjectEditor />} />
+            */}
             <Route
               path="/endpoints"
               element={
@@ -74,10 +83,26 @@ const App = () => (
               }
             />
             <Route
-              path="/execution"
+              path="/test-suites"
               element={
                 <Layout>
-                  <Execution />
+                  <TestSuites />
+                </Layout>
+              }
+            />
+            <Route
+              path="/bugs"
+              element={
+                <Layout>
+                  <Bugs />
+                </Layout>
+              }
+            />
+            <Route
+              path="/test-executions"
+              element={
+                <Layout>
+                  <TestExecutions />
                 </Layout>
               }
             />
@@ -192,7 +217,8 @@ const App = () => (
             />
           </Routes>
         </BrowserRouter>
-      </TooltipProvider>
+              </TooltipProvider>
+      </ExecutionProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

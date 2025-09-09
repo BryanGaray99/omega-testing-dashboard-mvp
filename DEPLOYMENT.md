@@ -1,6 +1,6 @@
-# 🚀 Guía de Despliegue - TestCentral
+# 🚀 Guía de Despliegue - Omega Testing
 
-Esta guía proporciona instrucciones detalladas para desplegar TestCentral en diferentes plataformas.
+Esta guía proporciona instrucciones detalladas para desplegar Omega Testing en diferentes plataformas.
 
 ## 📋 Tabla de Contenidos
 
@@ -156,8 +156,8 @@ sudo ufw enable
 
 ```bash
 # En tu servidor, clonar el repositorio
-git clone <tu-repositorio-url> testcentral
-cd testcentral
+git clone <tu-repositorio-url> Omega Testing
+cd Omega Testing
 
 # Instalar dependencias
 npm install
@@ -166,7 +166,7 @@ npm install
 npm run build
 
 # Configurar PM2
-pm2 start dist/server/node-build.mjs --name testcentral
+pm2 start dist/server/node-build.mjs --name Omega Testing
 pm2 startup
 pm2 save
 ```
@@ -175,7 +175,7 @@ pm2 save
 
 ```bash
 # Crear configuración de Nginx
-sudo nano /etc/nginx/sites-available/testcentral
+sudo nano /etc/nginx/sites-available/Omega Testing
 ```
 
 ```nginx
@@ -185,7 +185,7 @@ server {
 
     # Servir archivos estáticos
     location / {
-        root /path/to/testcentral/dist/spa;
+        root /path/to/Omega Testing/dist/spa;
         try_files $uri $uri/ /index.html;
     }
 
@@ -206,7 +206,7 @@ server {
 
 ```bash
 # Habilitar sitio
-sudo ln -s /etc/nginx/sites-available/testcentral /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/Omega Testing /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -266,7 +266,7 @@ Crear `docker-compose.yml`:
 version: "3.8"
 
 services:
-  testcentral:
+  Omega Testing:
     build: .
     ports:
       - "3000:3000"
@@ -285,7 +285,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
     depends_on:
-      - testcentral
+      - Omega Testing
     restart: unless-stopped
 ```
 
@@ -293,16 +293,16 @@ services:
 
 ```bash
 # Construir imagen
-docker build -t testcentral .
+docker build -t Omega Testing .
 
 # Ejecutar contenedor
-docker run -p 3000:3000 testcentral
+docker run -p 3000:3000 Omega Testing
 
 # Con Docker Compose
 docker-compose up -d
 
 # Ver logs
-docker-compose logs -f testcentral
+docker-compose logs -f Omega Testing
 
 # Actualizar
 docker-compose pull
@@ -411,7 +411,7 @@ Crear `.env` para configuraciones específicas:
 ```env
 # Ejemplo de variables
 VITE_API_URL=https://api.tu-dominio.com
-VITE_APP_NAME=TestCentral
+VITE_APP_NAME=Omega Testing
 VITE_VERSION=1.0.0
 ```
 

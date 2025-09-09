@@ -35,7 +35,7 @@ export default function ExportSettings() {
       <div>
         <h2 className="text-2xl font-bold text-foreground">Data Export</h2>
         <p className="text-muted-foreground">
-          Export your TestCentral data in various formats for backup or
+          Export your Omega Testing data in various formats for backup or
           migration.
         </p>
       </div>

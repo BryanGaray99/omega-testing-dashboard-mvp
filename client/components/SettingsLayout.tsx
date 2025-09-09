@@ -97,7 +97,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
           <div className="border-t border-border p-4">
             <div className="flex items-center space-x-2 text-xs text-muted-foreground">
               <TestTube className="h-4 w-4" />
-              <span>TestCentral Settings v1.0</span>
+              <span>Omega Testing Settings v1.0</span>
             </div>
           </div>
         </div>

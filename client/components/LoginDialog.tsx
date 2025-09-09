@@ -68,7 +68,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <LogIn className="h-5 w-5" />
-            <span>Login to TestCentral</span>
+            <span>Login to Omega Testing</span>
           </DialogTitle>
           <DialogDescription>
             Login to access basic user features and preview future

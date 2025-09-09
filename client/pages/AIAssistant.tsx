@@ -25,9 +25,9 @@ export default function AIAssistant() {
     },
     {
       icon: TestTube,
-      title: "Automated Test Optimization",
+      title: "Test Case Generation",
       description:
-        "AI-powered analysis to optimize test performance and reduce redundancy",
+        "AI-powered analysis to generate comprehensive test cases automatically",
       futureFeature: true,
     },
     {
