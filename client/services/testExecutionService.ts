@@ -7,18 +7,16 @@ import {
   UpdateTestExecutionDto 
 } from '@/components/types/test-execution.types';
 
-const API_BASE_URL = import.meta.env.VITE_NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/v1/api';
 
 class TestExecutionService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
+    const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const headers = isGet
+      ? { ...(options.headers || {}) }
+      : { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    const response = await fetch(url, { headers, ...options });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

@@ -33,6 +33,7 @@ import AppearanceSettings from "./pages/settings/Appearance";
 import ExportSettings from "./pages/settings/Export";
 import DangerZoneSettings from "./pages/settings/DangerZone";
 import NotFound from "./pages/NotFound";
+import BackendLoaderOverlay from "./components/BackendLoaderOverlay";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
     <AuthProvider>
       <ExecutionProvider>
         <TooltipProvider>
+        <BackendLoaderOverlay />
         <Toaster />
         <Sonner />
         <BrowserRouter>

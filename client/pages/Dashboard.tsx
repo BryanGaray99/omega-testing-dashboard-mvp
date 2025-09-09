@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,11 @@ import {
   TrendingUp,
   FolderKanban,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 
 // Fetch helpers
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/v1/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/v1/api";
 
 async function fetchProjects() {
   const url = `${API_BASE}/projects`;
@@ -41,8 +42,10 @@ async function fetchGlobalExecutionSummary() {
 }
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   // 1. Obtener proyectos
-  const { data: projectsData, isLoading: loadingProjects } = useQuery({
+  const { data: projectsData, isLoading: loadingProjects, refetch: refetchProjects } = useQuery({
     queryKey: ["projects"],
     queryFn: fetchProjects,
   });
@@ -50,7 +53,7 @@ export default function Dashboard() {
   const totalProjects = projects.length;
 
   // 2. Obtener todos los endpoints globales
-  const { data: endpointsData, isLoading: loadingEndpoints } = useQuery({
+  const { data: endpointsData, isLoading: loadingEndpoints, refetch: refetchEndpoints } = useQuery({
     queryKey: ["endpoints"],
     queryFn: fetchAllEndpoints,
   });
@@ -59,10 +62,32 @@ export default function Dashboard() {
   const totalEndpoints = endpoints.length;
 
   // 3. Obtener resumen global de ejecuciones
-  const { data: summaryData, isLoading: loadingSummary } = useQuery({
+  const { data: summaryData, isLoading: loadingSummary, refetch: refetchSummary } = useQuery({
     queryKey: ["global-execution-summary"],
     queryFn: fetchGlobalExecutionSummary,
   });
+  // Refresh on backend-ready event
+  useEffect(() => {
+    const onReady = () => {
+      void handleRefresh();
+    };
+    window.addEventListener('backend-ready', onReady as EventListener);
+    return () => window.removeEventListener('backend-ready', onReady as EventListener);
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchProjects(),
+        refetchEndpoints(),
+        refetchSummary(),
+      ]);
+      await new Promise((r) => setTimeout(r, 500));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const summary = summaryData?.data;
 
   // 4. Loading states
@@ -87,6 +112,18 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
+          </Button>
           <Button asChild>
             <Link to="/projects">
               <Plus className="h-4 w-4 mr-2" />
@@ -97,7 +134,7 @@ export default function Dashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-500 ${isRefreshing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>

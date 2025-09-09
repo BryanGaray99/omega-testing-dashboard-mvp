@@ -1,7 +1,7 @@
 import { Endpoint, CreateEndpointData, UpdateEndpointData } from "../components/types/endpoint.types";
 
 // API Base URL
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/v1/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/v1/api";
 
 export async function fetchEndpoints(projectId?: string): Promise<{ data: Endpoint[] }> {
   if (projectId) {

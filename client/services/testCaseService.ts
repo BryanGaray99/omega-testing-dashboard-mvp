@@ -1,7 +1,7 @@
 import { TestCase } from "../components/types/testCase.types";
 
 // API Base URL
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/v1/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/v1/api";
 
 // Helper function to get all test cases from all projects
 export async function fetchTestCases(): Promise<{ data: TestCase[] }> {
